@@ -21,7 +21,7 @@ import (
 func tableDockerfileCmd(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "dockerfile_cmd",
-		Description: "",
+		Description: "List all commands from the Dockerfile.",
 		List: &plugin.ListConfig{
 			ParentHydrate: dockerfileList,
 			Hydrate:       listDockerfileCmd,
@@ -29,21 +29,20 @@ func tableDockerfileCmd(ctx context.Context) *plugin.Table {
 		},
 		//GetMatrixItem: dockerfileList,
 		Columns: []*plugin.Column{
+			// Top columns
 			{Name: "path", Type: proto.ColumnType_STRING, Description: "Full path of the file."},
 			{Name: "stage", Type: proto.ColumnType_STRING, Description: "Stage name in the Dockerfile, defaults to the stage number."},
-			{Name: "stage_number", Type: proto.ColumnType_INT, Description: "Stage number in the Dockerfile, starting at zero."},
-			{Name: "from", Type: proto.ColumnType_STRING, Description: ""},
 			{Name: "cmd", Type: proto.ColumnType_STRING, Description: "Command name in lowercase form, e.g. from, env, run, etc."},
-			{Name: "sub_cmd", Type: proto.ColumnType_STRING, Description: "Sub command name in lowercase form, e.g. set to 'run' for 'onbuild run ...'."},
-			{Name: "start_line", Type: proto.ColumnType_INT, Description: "First line number of this cmd in the file."},
+			{Name: "data", Type: proto.ColumnType_JSON, Description: "Command data, parsed into a convenient format for each command type."},
+			// Other columns
+			{Name: "args", Type: proto.ColumnType_JSON, Description: "Array of arguments passed to the command."},
 			{Name: "end_line", Type: proto.ColumnType_INT, Description: "Last line number of this cmd in the file."},
+			{Name: "flags", Type: proto.ColumnType_JSON, Description: "Flags passed to the command."},
+			{Name: "prev_comment", Type: proto.ColumnType_JSON, Transform: transform.FromField("PrevComment"), Description: "Comment above the command in the Dockerfile."},
 			{Name: "source", Type: proto.ColumnType_STRING, Description: "Full original source code of the cmd."},
-			{Name: "flags", Type: proto.ColumnType_JSON, Description: ""},
-			{Name: "args", Type: proto.ColumnType_JSON, Description: ""},
-			{Name: "data", Type: proto.ColumnType_JSON, Description: ""},
-			{Name: "prev_comment", Type: proto.ColumnType_JSON, Transform: transform.FromField("PrevComment"), Description: ""},
-			//{Name: "attributes", Type: proto.ColumnType_JSON, Transform: transform.FromField("Attributes"), Description: ""},
-			//{Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Description: ""},
+			{Name: "stage_number", Type: proto.ColumnType_INT, Description: "Stage number in the Dockerfile, starting at zero."},
+			{Name: "start_line", Type: proto.ColumnType_INT, Description: "First line number of this cmd in the file."},
+			{Name: "sub_cmd", Type: proto.ColumnType_STRING, Description: "Sub command name in lowercase form, e.g. set to 'run' for 'onbuild run ...'."},
 		},
 	}
 }
@@ -53,7 +52,6 @@ type Command struct {
 	Path        string
 	Stage       string
 	StageNumber int
-	From        string
 	Cmd         string
 	SubCmd      string
 	Flags       []string
@@ -200,13 +198,11 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	stage := ""
 	stageNumber := -1
-	from := "args"
 
 	for _, i := range parsed.AST.Children {
 
 		cmd := Command{
 			Path:        path.Path,
-			From:        from,
 			Cmd:         i.Value,
 			Source:      i.Original,
 			Flags:       i.Flags,
@@ -229,9 +225,6 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 
 		if i.Value == "from" {
-			if len(i.Value) >= 1 {
-				from = cmd.Args[0]
-			}
 			stageNumber++
 			stage = fmt.Sprintf("%d", stageNumber)
 			if cmd.Cmd == "from" && len(cmd.Args) >= 3 {
@@ -242,7 +235,6 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		}
 		cmd.Stage = stage
 		cmd.StageNumber = stageNumber
-		cmd.From = from
 
 		instruction, err := instructions.ParseInstruction(i)
 		if err != nil {
