@@ -1,0 +1,375 @@
+package docker
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/moby/buildkit/frontend/dockerfile/instructions"
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"github.com/pkg/errors"
+
+	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
+)
+
+func tableDockerfileCmd(ctx context.Context) *plugin.Table {
+	return &plugin.Table{
+		Name:        "dockerfile_cmd",
+		Description: "",
+		List: &plugin.ListConfig{
+			ParentHydrate: dockerfileList,
+			Hydrate:       listDockerfileCmd,
+			KeyColumns:    plugin.OptionalColumns([]string{"path"}),
+		},
+		//GetMatrixItem: dockerfileList,
+		Columns: []*plugin.Column{
+			{Name: "path", Type: proto.ColumnType_STRING, Description: "Full path of the file."},
+			{Name: "stage", Type: proto.ColumnType_STRING, Description: "Stage name in the Dockerfile, defaults to the stage number."},
+			{Name: "stage_number", Type: proto.ColumnType_INT, Description: "Stage number in the Dockerfile, starting at zero."},
+			{Name: "from", Type: proto.ColumnType_STRING, Description: ""},
+			{Name: "cmd", Type: proto.ColumnType_STRING, Description: "Command name in lowercase form, e.g. from, env, run, etc."},
+			{Name: "sub_cmd", Type: proto.ColumnType_STRING, Description: "Sub command name in lowercase form, e.g. set to 'run' for 'onbuild run ...'."},
+			{Name: "start_line", Type: proto.ColumnType_INT, Description: "First line number of this cmd in the file."},
+			{Name: "end_line", Type: proto.ColumnType_INT, Description: "Last line number of this cmd in the file."},
+			{Name: "source", Type: proto.ColumnType_STRING, Description: "Full original source code of the cmd."},
+			{Name: "flags", Type: proto.ColumnType_JSON, Description: ""},
+			{Name: "args", Type: proto.ColumnType_JSON, Description: ""},
+			{Name: "data", Type: proto.ColumnType_JSON, Description: ""},
+			{Name: "prev_comment", Type: proto.ColumnType_JSON, Transform: transform.FromField("PrevComment"), Description: ""},
+			//{Name: "attributes", Type: proto.ColumnType_JSON, Transform: transform.FromField("Attributes"), Description: ""},
+			//{Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue(), Description: ""},
+		},
+	}
+}
+
+// Command is the struct for each dockerfile command
+type Command struct {
+	Path        string
+	Stage       string
+	StageNumber int
+	From        string
+	Cmd         string
+	SubCmd      string
+	Flags       []string
+	Args        []string
+	PrevComment []string
+	Source      string
+	StartLine   int
+	EndLine     int
+	Data        interface{}
+}
+
+type filePath struct {
+	Path string
+}
+
+type nameValuePair struct {
+	Name  string  `json:"name"`
+	Value *string `json:"value,omitempty"`
+}
+
+type argCmdData struct {
+	Args []nameValuePair `json:"args"`
+}
+
+type copyCmdData struct {
+	Sources []string `json:"sources"`
+	Dest    string   `json:"dest"`
+	Chown   string   `json:"chown,omitempty"`
+	Chmod   string   `json:"chmod,omitempty"`
+}
+
+type exposeCmdData struct {
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+type fromCmdData struct {
+	Image     string `json:"image"`
+	Tag       string `json:"tag,omitempty"`
+	Digest    string `json:"digest,omitempty"`
+	StageName string `json:"stage_name,omitempty"`
+}
+
+type runCmdData struct {
+	PrependShell bool     `json:"prepend_shell,omitempty"`
+	Commands     []string `json:"commands"`
+}
+
+type userCmdData struct {
+	User  string `json:"user"`
+	Group string `json:"group,omitempty"`
+}
+
+type volumeCmdData struct {
+	Volumes []string `json:"volumes"`
+}
+
+type workdirCmdData struct {
+	Path string `json:"path"`
+}
+
+func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+
+	// #1 - Path via qual
+
+	// If the path was requested through qualifier then match it exactly. Globs
+	// are not supported in this context since the output value for the column
+	// will never match the requested value.
+	quals := d.KeyColumnQuals
+	if quals["path"] != nil {
+		d.StreamListItem(ctx, filePath{Path: quals["path"].GetStringValue()})
+		return nil, nil
+	}
+
+	// #2 - Glob paths in config
+
+	// Fail if no paths are specified
+	dockerConfig := GetConfig(d.Connection)
+	if &dockerConfig == nil || dockerConfig.Paths == nil {
+		return nil, errors.New("paths must be configured")
+	}
+
+	// Gather file path matches for the glob
+	var matches []string
+	paths := dockerConfig.Paths
+	for _, i := range paths {
+		iMatches, err := filepath.Glob(i)
+		if err != nil {
+			// Fail if any path is an invalid glob
+			return nil, errors.New(fmt.Sprintf("Path is not a valid glob: %s", i))
+		}
+		matches = append(matches, iMatches...)
+	}
+
+	// Sanitize the matches to likely dockerfiles
+	for _, i := range matches {
+
+		// If the file path is an exact match to a matrix path then it's always
+		// treated as a match - it was requested exactly
+		hit := false
+		for _, j := range paths {
+			if i == j {
+				hit = true
+				break
+			}
+		}
+		if hit {
+			d.StreamListItem(ctx, filePath{Path: i})
+			continue
+		}
+
+		// This file was expanded from the glob, so check it's likely to be
+		// of the right type based on the name / extension.
+		base := filepath.Base(i)
+		ext := filepath.Ext(i)
+		fileName := base[:len(base)-len(ext)]
+		if fileName == "Dockerfile" || ext == ".dockerfile" {
+			d.StreamListItem(ctx, filePath{Path: i})
+		}
+	}
+
+	return nil, nil
+}
+
+func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	// The path comes from a parent hydate, defaulting to the config paths or
+	// available by the optional key column
+	path := h.Item.(filePath)
+
+	reader, err := os.Open(path.Path)
+	if err != nil {
+		// Could not open the file, so log and ignore
+		plugin.Logger(ctx).Error("listDockerfileCmd", "file_error", err, "path", path.Path)
+		return nil, nil
+	}
+
+	parsed, err := parser.Parse(reader)
+	if err != nil {
+		// Could not open the file, so log and ignore
+		plugin.Logger(ctx).Error("listDockerfileCmd", "parse_error", err, "path", path.Path)
+		return nil, nil
+	}
+
+	stage := ""
+	stageNumber := -1
+	from := "args"
+
+	for _, i := range parsed.AST.Children {
+
+		cmd := Command{
+			Path:        path.Path,
+			From:        from,
+			Cmd:         i.Value,
+			Source:      i.Original,
+			Flags:       i.Flags,
+			StartLine:   i.StartLine,
+			EndLine:     i.EndLine,
+			PrevComment: i.PrevComment,
+		}
+
+		if i.Next != nil && len(i.Next.Children) > 0 {
+			child := i.Next.Children[0]
+			cmd.SubCmd = child.Value
+			cmd.Args = append(cmd.Args, child.Value)
+			for n := child.Next; n != nil; n = n.Next {
+				cmd.Args = append(cmd.Args, n.Value)
+			}
+		}
+
+		for n := i.Next; n != nil; n = n.Next {
+			cmd.Args = append(cmd.Args, n.Value)
+		}
+
+		if i.Value == "from" {
+			if len(i.Value) >= 1 {
+				from = cmd.Args[0]
+			}
+			stageNumber++
+			stage = fmt.Sprintf("%d", stageNumber)
+			if cmd.Cmd == "from" && len(cmd.Args) >= 3 {
+				if strings.ToLower(cmd.Args[1]) == "as" {
+					stage = cmd.Args[2]
+				}
+			}
+		}
+		cmd.Stage = stage
+		cmd.StageNumber = stageNumber
+		cmd.From = from
+
+		instruction, err := instructions.ParseInstruction(i)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse Dockerfile")
+		}
+
+		switch ic := instruction.(type) {
+		case *instructions.AddCommand:
+			data := copyCmdData{
+				Chmod:   ic.Chmod,
+				Chown:   ic.Chown,
+				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
+				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+			}
+			cmd.Data = data
+		case *instructions.ArgCommand:
+			data := argCmdData{}
+			for _, i := range ic.Args {
+				arg := nameValuePair{
+					Name:  i.Key,
+					Value: i.Value,
+				}
+				data.Args = append(data.Args, arg)
+			}
+			cmd.Data = data
+		case *instructions.CmdCommand:
+			data := runCmdData{
+				Commands: ic.CmdLine,
+			}
+			cmd.Data = data
+		case *instructions.CopyCommand:
+			data := copyCmdData{
+				Chmod:   ic.Chmod,
+				Chown:   ic.Chown,
+				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
+				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+			}
+			cmd.Data = data
+		case *instructions.EntrypointCommand:
+			data := runCmdData{
+				Commands: ic.CmdLine,
+			}
+			cmd.Data = data
+		case *instructions.EnvCommand:
+			data := map[string]string{}
+			for _, kv := range ic.Env {
+				data[kv.Key] = kv.Value
+			}
+			cmd.Data = data
+		case *instructions.ExposeCommand:
+			data := []exposeCmdData{}
+			for _, p := range ic.Ports {
+				parts := strings.Split(p, "/")
+				iPort, err := strconv.Atoi(parts[0])
+				if err != nil {
+					// Log and ignore errors
+					plugin.Logger(ctx).Error("listDockerfileCmd", "expose_data_parsing_error", err, "cmd", cmd)
+					continue
+				}
+				ep := exposeCmdData{
+					Port:     iPort,
+					Protocol: "tcp",
+				}
+				if len(parts) > 1 {
+					ep.Protocol = parts[1]
+				}
+				data = append(data, ep)
+			}
+			cmd.Data = data
+		case *instructions.HealthCheckCommand:
+			cmd.Data = ic.Health
+		case *instructions.LabelCommand:
+			data := map[string]string{}
+			for _, kv := range ic.Labels {
+				data[kv.Key] = kv.Value
+			}
+			cmd.Data = data
+		case *instructions.RunCommand:
+			// NOTE: This is an approximate split of the commands only based on &&.
+			// It does not do full parsing of the command so may be inaccurate if the
+			// command includes && for other reasons (rare).
+			re := regexp.MustCompile(`\s*&&\s*`)
+			data := runCmdData{
+				PrependShell: ic.PrependShell,
+				Commands:     re.Split(ic.CmdLine[0], -1),
+			}
+			cmd.Data = data
+		case *instructions.UserCommand:
+			data := userCmdData{}
+			parts := strings.Split(ic.User, ":")
+			data.User = parts[0]
+			if len(parts) >= 2 {
+				data.Group = parts[1]
+			}
+			cmd.Data = data
+		case *instructions.VolumeCommand:
+			cmd.Data = volumeCmdData{Volumes: ic.Volumes}
+		case *instructions.WorkdirCommand:
+			cmd.Data = workdirCmdData{Path: ic.Path}
+		}
+
+		switch cmd.Cmd {
+		case "from":
+			data := fromCmdData{}
+			// Get the image and qualifier (if any)
+			parts := strings.Split(cmd.Args[0], ":")
+			if len(parts) >= 2 {
+				data.Image = parts[0]
+				data.Tag = parts[1]
+			} else {
+				parts := strings.Split(cmd.Args[0], "@")
+				data.Image = parts[0]
+				if len(parts) >= 2 {
+					data.Digest = parts[1]
+				}
+			}
+			// Get the stage name (if any)
+			if len(cmd.Args) >= 3 {
+				if strings.ToLower(cmd.Args[1]) == "as" {
+					data.StageName = cmd.Args[2]
+				}
+			}
+			cmd.Data = data
+		}
+
+		d.StreamListItem(ctx, cmd)
+	}
+
+	return nil, nil
+}
