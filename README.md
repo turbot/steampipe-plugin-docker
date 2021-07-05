@@ -21,13 +21,14 @@ Run a query:
 
 ```sql
 select
-  stage,
   cmd,
-  args
+  data
 from
   dockerfile_cmd
 where
   path = '/my/Dockerfile'
+order by
+  start_line
 ```
 
 ## Developing

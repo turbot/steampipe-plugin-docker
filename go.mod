@@ -3,6 +3,7 @@ module github.com/turbot/steampipe-plugin-docker
 go 1.16
 
 require (
+	github.com/docker/docker v20.10.7+incompatible
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1

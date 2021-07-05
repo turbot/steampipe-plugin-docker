@@ -16,7 +16,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		DefaultTransform: transform.FromGo(),
 		TableMap: map[string]*plugin.Table{
-			"dockerfile_cmd": tableDockerfileCmd(ctx),
+			"dockerfile_cmd":   tableDockerfileCmd(ctx),
+			"docker_container": tableDockerContainer(ctx),
+			"docker_image":     tableDockerImage(ctx),
 		},
 	}
 	return p
