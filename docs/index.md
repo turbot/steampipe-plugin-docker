@@ -66,11 +66,15 @@ Installing the latest docker plugin will create a config file (`~/.steampipe/con
 ```hcl
 connection "docker" {
   plugin = "docker"
-  paths = [ "/path/to/files" ]
+  paths = [ "/path/to/Dockerfile", /path/to/many/dockerfiles/*" ]
 }
 ```
 
 - `paths` - A list of directory paths to search for Dockerfiles. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match). File matches must start with `Dockerfile` or have an extension of `.dockerfile`.
+- `host` - Location of the docker engine endpoint. Defaults to `DOCKER_HOST` env var.
+- `api_version` - API version to use. Defaults to `DOCKER_API_VERSION` env var.
+- `cert_path` - Path to a custom TLS certificate. Defaults to `DOCKER_CERT_PATH` env var.
+- `tls_verify` - Flag to control TLS verification. Defaults to `DOCKER_TLS_VERIFY` env var.
 
 ## Get involved
 

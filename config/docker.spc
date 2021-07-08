@@ -7,4 +7,10 @@ connection "docker" {
   # have a name of Dockerfile (e.g. Dockerfile, Dockerfile.example) or an
   # .dockerfile extension (e.g. nginx.dockerfile).
   # paths = [ "/path/to/dir/*", "/path/to/exact/custom-dockerfile-name" ]
+
+  # Optional docker engine configuration.
+  # host        = "tcp://192.168.59.103:2376"
+  # cert_path   = "/path/to/my-cert"
+  # api_version = "1.41"
+  # tls_verify  = true
 }

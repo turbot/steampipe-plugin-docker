@@ -18,16 +18,15 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableDockerfileCmd(ctx context.Context) *plugin.Table {
+func tableDockerDockerfileInstruction(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "dockerfile_cmd",
-		Description: "List all commands from the Dockerfile.",
+		Name:        "docker_instruction",
+		Description: "List all instructions from the Dockerfile.",
 		List: &plugin.ListConfig{
 			ParentHydrate: dockerfileList,
-			Hydrate:       listDockerfileCmd,
+			Hydrate:       listDockerDockerfileInstruction,
 			KeyColumns:    plugin.OptionalColumns([]string{"path"}),
 		},
-		//GetMatrixItem: dockerfileList,
 		Columns: []*plugin.Column{
 			// Top columns
 			{Name: "path", Type: proto.ColumnType_STRING, Description: "Full path of the file."},
@@ -49,18 +48,18 @@ func tableDockerfileCmd(ctx context.Context) *plugin.Table {
 
 // Command is the struct for each dockerfile command
 type Command struct {
-	Path        string
-	Stage       string
-	StageNumber int
-	Cmd         string
-	SubCmd      string
-	Flags       []string
-	Args        []string
-	PrevComment []string
-	Source      string
-	StartLine   int
-	EndLine     int
-	Data        interface{}
+	Path           string
+	Stage          string
+	StageNumber    int
+	Instruction    string
+	SubInstruction string
+	Flags          []string
+	Args           []string
+	PrevComment    []string
+	Source         string
+	StartLine      int
+	EndLine        int
+	Data           interface{}
 }
 
 type filePath struct {
@@ -72,44 +71,44 @@ type nameValuePair struct {
 	Value *string `json:"value,omitempty"`
 }
 
-type argCmdData struct {
+type argInstructionData struct {
 	Args []nameValuePair `json:"args"`
 }
 
-type copyCmdData struct {
+type copyInstructionData struct {
 	Sources []string `json:"sources"`
 	Dest    string   `json:"dest"`
 	Chown   string   `json:"chown,omitempty"`
 	Chmod   string   `json:"chmod,omitempty"`
 }
 
-type exposeCmdData struct {
+type exposeInstructionData struct {
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
 }
 
-type fromCmdData struct {
+type fromInstructionData struct {
 	Image     string `json:"image"`
 	Tag       string `json:"tag,omitempty"`
 	Digest    string `json:"digest,omitempty"`
 	StageName string `json:"stage_name,omitempty"`
 }
 
-type runCmdData struct {
+type runInstructionData struct {
 	PrependShell bool     `json:"prepend_shell,omitempty"`
 	Commands     []string `json:"commands"`
 }
 
-type userCmdData struct {
+type userInstructionData struct {
 	User  string `json:"user"`
 	Group string `json:"group,omitempty"`
 }
 
-type volumeCmdData struct {
+type volumeInstructionData struct {
 	Volumes []string `json:"volumes"`
 }
 
-type workdirCmdData struct {
+type workdirInstructionData struct {
 	Path string `json:"path"`
 }
 
@@ -176,7 +175,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return nil, nil
 }
 
-func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDockerDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// The path comes from a parent hydate, defaulting to the config paths or
 	// available by the optional key column
@@ -185,14 +184,14 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	reader, err := os.Open(path.Path)
 	if err != nil {
 		// Could not open the file, so log and ignore
-		plugin.Logger(ctx).Error("listDockerfileCmd", "file_error", err, "path", path.Path)
+		plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "file_error", err, "path", path.Path)
 		return nil, nil
 	}
 
 	parsed, err := parser.Parse(reader)
 	if err != nil {
 		// Could not open the file, so log and ignore
-		plugin.Logger(ctx).Error("listDockerfileCmd", "parse_error", err, "path", path.Path)
+		plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "parse_error", err, "path", path.Path)
 		return nil, nil
 	}
 
@@ -203,7 +202,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		cmd := Command{
 			Path:        path.Path,
-			Cmd:         i.Value,
+			Instruction: i.Value,
 			Source:      i.Original,
 			Flags:       i.Flags,
 			StartLine:   i.StartLine,
@@ -213,7 +212,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		if i.Next != nil && len(i.Next.Children) > 0 {
 			child := i.Next.Children[0]
-			cmd.SubCmd = child.Value
+			cmd.SubInstruction = child.Value
 			cmd.Args = append(cmd.Args, child.Value)
 			for n := child.Next; n != nil; n = n.Next {
 				cmd.Args = append(cmd.Args, n.Value)
@@ -227,7 +226,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		if i.Value == "from" {
 			stageNumber++
 			stage = fmt.Sprintf("%d", stageNumber)
-			if cmd.Cmd == "from" && len(cmd.Args) >= 3 {
+			if cmd.Instruction == "from" && len(cmd.Args) >= 3 {
 				if strings.ToLower(cmd.Args[1]) == "as" {
 					stage = cmd.Args[2]
 				}
@@ -243,7 +242,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		switch ic := instruction.(type) {
 		case *instructions.AddCommand:
-			data := copyCmdData{
+			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
 				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
@@ -251,7 +250,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			}
 			cmd.Data = data
 		case *instructions.ArgCommand:
-			data := argCmdData{}
+			data := argInstructionData{}
 			for _, i := range ic.Args {
 				arg := nameValuePair{
 					Name:  i.Key,
@@ -261,12 +260,12 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			}
 			cmd.Data = data
 		case *instructions.CmdCommand:
-			data := runCmdData{
+			data := runInstructionData{
 				Commands: ic.CmdLine,
 			}
 			cmd.Data = data
 		case *instructions.CopyCommand:
-			data := copyCmdData{
+			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
 				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
@@ -274,7 +273,7 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			}
 			cmd.Data = data
 		case *instructions.EntrypointCommand:
-			data := runCmdData{
+			data := runInstructionData{
 				Commands: ic.CmdLine,
 			}
 			cmd.Data = data
@@ -285,16 +284,16 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			}
 			cmd.Data = data
 		case *instructions.ExposeCommand:
-			data := []exposeCmdData{}
+			data := []exposeInstructionData{}
 			for _, p := range ic.Ports {
 				parts := strings.Split(p, "/")
 				iPort, err := strconv.Atoi(parts[0])
 				if err != nil {
 					// Log and ignore errors
-					plugin.Logger(ctx).Error("listDockerfileCmd", "expose_data_parsing_error", err, "cmd", cmd)
+					plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "expose_data_parsing_error", err, "cmd", cmd)
 					continue
 				}
-				ep := exposeCmdData{
+				ep := exposeInstructionData{
 					Port:     iPort,
 					Protocol: "tcp",
 				}
@@ -317,13 +316,13 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			// It does not do full parsing of the command so may be inaccurate if the
 			// command includes && for other reasons (rare).
 			re := regexp.MustCompile(`\s*&&\s*`)
-			data := runCmdData{
+			data := runInstructionData{
 				PrependShell: ic.PrependShell,
 				Commands:     re.Split(ic.CmdLine[0], -1),
 			}
 			cmd.Data = data
 		case *instructions.UserCommand:
-			data := userCmdData{}
+			data := userInstructionData{}
 			parts := strings.Split(ic.User, ":")
 			data.User = parts[0]
 			if len(parts) >= 2 {
@@ -331,14 +330,14 @@ func listDockerfileCmd(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 			}
 			cmd.Data = data
 		case *instructions.VolumeCommand:
-			cmd.Data = volumeCmdData{Volumes: ic.Volumes}
+			cmd.Data = volumeInstructionData{Volumes: ic.Volumes}
 		case *instructions.WorkdirCommand:
-			cmd.Data = workdirCmdData{Path: ic.Path}
+			cmd.Data = workdirInstructionData{Path: ic.Path}
 		}
 
-		switch cmd.Cmd {
+		switch cmd.Instruction {
 		case "from":
-			data := fromCmdData{}
+			data := fromInstructionData{}
 			// Get the image and qualifier (if any)
 			parts := strings.Split(cmd.Args[0], ":")
 			if len(parts) >= 2 {

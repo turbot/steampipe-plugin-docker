@@ -16,9 +16,7 @@ func tableDockerImage(ctx context.Context) *plugin.Table {
 		Description: "List all images from the Docker engine.",
 		List: &plugin.ListConfig{
 			Hydrate: listImage,
-			//KeyColumns:    plugin.OptionalColumns([]string{"path"}),
 		},
-		//GetMatrixItem: dockerfileList,
 		Columns: []*plugin.Column{
 			// Top columns
 			{Name: "id", Type: proto.ColumnType_STRING, Description: "ID of the image."},
