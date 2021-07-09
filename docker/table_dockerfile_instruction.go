@@ -18,20 +18,20 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/plugin/transform"
 )
 
-func tableDockerDockerfileInstruction(ctx context.Context) *plugin.Table {
+func tableDockerfileInstruction(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "docker_instruction",
+		Name:        "dockerfile_instruction",
 		Description: "List all instructions from the Dockerfile.",
 		List: &plugin.ListConfig{
 			ParentHydrate: dockerfileList,
-			Hydrate:       listDockerDockerfileInstruction,
+			Hydrate:       listDockerfileInstruction,
 			KeyColumns:    plugin.OptionalColumns([]string{"path"}),
 		},
 		Columns: []*plugin.Column{
 			// Top columns
 			{Name: "path", Type: proto.ColumnType_STRING, Description: "Full path of the file."},
 			{Name: "stage", Type: proto.ColumnType_STRING, Description: "Stage name in the Dockerfile, defaults to the stage number."},
-			{Name: "cmd", Type: proto.ColumnType_STRING, Description: "Command name in lowercase form, e.g. from, env, run, etc."},
+			{Name: "instruction", Type: proto.ColumnType_STRING, Description: "Command name in lowercase form, e.g. from, env, run, etc."},
 			{Name: "data", Type: proto.ColumnType_JSON, Description: "Command data, parsed into a convenient format for each command type."},
 			// Other columns
 			{Name: "args", Type: proto.ColumnType_JSON, Description: "Array of arguments passed to the command."},
@@ -41,7 +41,7 @@ func tableDockerDockerfileInstruction(ctx context.Context) *plugin.Table {
 			{Name: "source", Type: proto.ColumnType_STRING, Description: "Full original source code of the cmd."},
 			{Name: "stage_number", Type: proto.ColumnType_INT, Description: "Stage number in the Dockerfile, starting at zero."},
 			{Name: "start_line", Type: proto.ColumnType_INT, Description: "First line number of this cmd in the file."},
-			{Name: "sub_cmd", Type: proto.ColumnType_STRING, Description: "Sub command name in lowercase form, e.g. set to 'run' for 'onbuild run ...'."},
+			{Name: "sub_instruction", Type: proto.ColumnType_STRING, Description: "Sub command name in lowercase form, e.g. set to 'run' for 'onbuild run ...'."},
 		},
 	}
 }
@@ -175,7 +175,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return nil, nil
 }
 
-func listDockerDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// The path comes from a parent hydate, defaulting to the config paths or
 	// available by the optional key column
@@ -184,14 +184,14 @@ func listDockerDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h
 	reader, err := os.Open(path.Path)
 	if err != nil {
 		// Could not open the file, so log and ignore
-		plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "file_error", err, "path", path.Path)
+		plugin.Logger(ctx).Error("listDockerfileInstruction", "file_error", err, "path", path.Path)
 		return nil, nil
 	}
 
 	parsed, err := parser.Parse(reader)
 	if err != nil {
 		// Could not open the file, so log and ignore
-		plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "parse_error", err, "path", path.Path)
+		plugin.Logger(ctx).Error("listDockerfileInstruction", "parse_error", err, "path", path.Path)
 		return nil, nil
 	}
 
@@ -290,7 +290,7 @@ func listDockerDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h
 				iPort, err := strconv.Atoi(parts[0])
 				if err != nil {
 					// Log and ignore errors
-					plugin.Logger(ctx).Error("listDockerDockerfileInstruction", "expose_data_parsing_error", err, "cmd", cmd)
+					plugin.Logger(ctx).Error("listDockerfileInstruction", "expose_data_parsing_error", err, "cmd", cmd)
 					continue
 				}
 				ep := exposeInstructionData{

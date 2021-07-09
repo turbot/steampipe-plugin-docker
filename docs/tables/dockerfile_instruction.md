@@ -1,4 +1,4 @@
-# Table: docker_dockerfile_instruction
+# Table: dockerfile_instruction
 
 List and query instructions from Dockerfile's.
 
@@ -12,7 +12,7 @@ Set the `path` column to query a specific Dockerfile. A full path must be provid
 select
   *
 from
-  docker_dockerfile_instruction
+  dockerfile_instruction
 where
   path = '/full/path/to/Dockerfile'
 order by
@@ -30,7 +30,7 @@ for Dockerfiles. To match, either the filename is `Dockerfile` (e.g.
 select
   *
 from
-  docker_dockerfile_instruction
+  dockerfile_instruction
 order by
   path,
   start_line
@@ -45,7 +45,7 @@ select
   data ->> 'image' as image,
   data ->> 'tag' as tag
 from
-  docker_dockerfile_instruction as cmd
+  dockerfile_instruction as cmd
 where
   cmd.cmd = 'from'
 order by
@@ -64,7 +64,7 @@ select
   (p ->> 'port')::int as port,
   p ->> 'protocol' as protocol
 from
-  docker_dockerfile_instruction as cmd,
+  dockerfile_instruction as cmd,
   jsonb_array_elements(data) as p
 where
   cmd.cmd = 'expose'
