@@ -66,7 +66,7 @@ Installing the latest docker plugin will create a config file (`~/.steampipe/con
 ```hcl
 connection "docker" {
   plugin = "docker"
-  paths = [ "/path/to/Dockerfile", /path/to/many/dockerfiles/*" ]
+  paths = [ "/path/to/Dockerfile", "/path/to/many/dockerfiles/*" ]
 }
 ```
 
