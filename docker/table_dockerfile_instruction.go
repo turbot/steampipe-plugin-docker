@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bmatcuk/doublestar"
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
@@ -129,7 +130,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	// Fail if no paths are specified
 	dockerConfig := GetConfig(d.Connection)
-	if &dockerConfig == nil || dockerConfig.Paths == nil {
+	if dockerConfig.Paths == nil {
 		return nil, errors.New("paths must be configured")
 	}
 
@@ -137,16 +138,52 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	var matches []string
 	paths := dockerConfig.Paths
 	for _, i := range paths {
-		iMatches, err := filepath.Glob(i)
+		// Check to resolve ~ to home dir
+		if strings.HasPrefix(i, "~") {
+			// File system context
+			home, err := os.UserHomeDir()
+			if err != nil {
+				plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "os.UserHomeDir error. ~ will not be expanded in paths.", err)
+			}
+
+			// Resolve ~ to home dir
+			if home != "" {
+				if i == "~" {
+					i = home
+				} else if strings.HasPrefix(i, "~/") {
+					i = filepath.Join(home, i[2:])
+				}
+			}
+		}
+
+		// Get full path
+		fullPath, err := filepath.Abs(i)
+		if err != nil {
+			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "failed to fetch absolute path", err, "path", i)
+			return nil, err
+		}
+
+		iMatches, err := doublestar.Glob(fullPath)
 		if err != nil {
 			// Fail if any path is an invalid glob
-			return nil, errors.New(fmt.Sprintf("Path is not a valid glob: %s", i))
+			return nil, fmt.Errorf("Path is not a valid glob: %s", i)
 		}
 		matches = append(matches, iMatches...)
 	}
 
 	// Sanitize the matches to likely dockerfiles
 	for _, i := range matches {
+		// Check if file or directory
+		fileInfo, err := os.Stat(i)
+		if err != nil {
+			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "error getting file info", err, "path", i)
+			return nil, err
+		}
+
+		// Ignore directories
+		if fileInfo.IsDir() {
+			continue
+		}
 
 		// If the file path is an exact match to a matrix path then it's always
 		// treated as a match - it was requested exactly
@@ -161,15 +198,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 			d.StreamListItem(ctx, filePath{Path: i})
 			continue
 		}
-
-		// This file was expanded from the glob, so check it's likely to be
-		// of the right type based on the name / extension.
-		base := filepath.Base(i)
-		ext := filepath.Ext(i)
-		fileName := base[:len(base)-len(ext)]
-		if fileName == "Dockerfile" || ext == ".dockerfile" {
-			d.StreamListItem(ctx, filePath{Path: i})
-		}
+		d.StreamListItem(ctx, filePath{Path: i})
 	}
 
 	return nil, nil
@@ -177,7 +206,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// The path comes from a parent hydate, defaulting to the config paths or
+	// The path comes from a parent hydrate, defaulting to the config paths or
 	// available by the optional key column
 	path := h.Item.(filePath)
 
@@ -237,7 +266,7 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 
 		instruction, err := instructions.ParseInstruction(i)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse Dockerfile")
+			return nil, errors.Wrap(err, fmt.Sprintf("failed to parse file %s", path))
 		}
 
 		switch ic := instruction.(type) {

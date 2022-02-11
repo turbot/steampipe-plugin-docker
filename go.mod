@@ -3,6 +3,7 @@ module github.com/turbot/steampipe-plugin-docker
 go 1.17
 
 require (
+	github.com/bmatcuk/doublestar v1.3.4
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1
