@@ -13,7 +13,7 @@ connection "docker" {
   #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
   #  - "/path/to/dir/Dockerfile" matches a specific Dockerfile
 
-  # If paths includes "*", all files (including non-Docker files) in
+  # If paths includes "*", all files (including non-Dockerfiles) in
   # the CWD will be matched, which may cause errors if incompatible file types exist
 
   # Defaults to CWD
