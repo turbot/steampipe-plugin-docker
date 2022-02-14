@@ -1,3 +1,13 @@
+## v0.2.0 [2022-02-14]
+
+_What's new?_
+
+- File loading and matching through the `paths` argument has been updated to make the plugin easier to use:
+  - The `paths` argument is no longer commented out by default for new plugin installations and now defaults to the current working directory
+  - Home directory expansion (`~`) is now supported
+  - Recursive directory searching (`**`) is now supported
+- Previously, when using wildcard matching (`*`), non-Dockerfiles were automatically excluded to prevent parsing errors. These files are no longer automatically excluded to allow for a wider range of matches. If your current configuration uses wildcard matching, e.g., `paths = [ "/path/to/my/files/*" ]`, please update it to include the default Dockerfile name and file extension, e.g., `paths = [ "/path/to/my/files/Dockerfile", "/path/to/my/files/*.dockerfile" ]`.
+
 ## v0.1.0 [2021-12-15]
 
 _Enhancements_
