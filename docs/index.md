@@ -72,15 +72,15 @@ connection "docker" {
   # Wildcard based searches are supported, including recursive searches
 
   # For example:
-  #  - "*.dockerfile" matches all Docker files in the CWD
-  #  - "**/*.dockerfile" matches all Docker files in the CWD and all sub-directories
-  #  - "../*.dockerfile" matches all Docker files in the CWD's parent directory
-  #  - "Dockerfile" matches all Docker files named "Dockerfile" in the current CWD
-  #  - "/path/to/dir/*.dockerfile" matches all Docker files in a specific directory
+  #  - "*.dockerfile" matches all Dockerfiles in the CWD
+  #  - "**/*.dockerfile" matches all Dockerfiles in the CWD and all sub-directories
+  #  - "../*.dockerfile" matches all Dockerfiles in the CWD's parent directory
+  #  - "Dockerfile" matches all Dockerfiles named "Dockerfile" in the CWD
+  #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
   #  - "/path/to/dir/Dockerfile" matches a specific file
 
-  # If paths includes "*", all files (including non-Docker files) in
-  # the current CWD will be matched, which may cause errors if incompatible filetypes exist
+  # If paths includes "*", all files (including non-Dockerfiles) in
+  # the CWD will be matched, which may cause errors if incompatible file types exist
 
   # Defaults to CWD
   paths = [ "Dockerfile", "*.dockerfile" ]
@@ -93,7 +93,7 @@ connection "docker" {
 }
 ```
 
-- `paths` - A list of directory paths to search for Dockerfiles. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+- `paths` - A list of directory paths to search for Dockerfiles. Paths are resolved relative to the current working directory. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also supports `**` for recursive matching. Defaults to the current working directory.
 - `host` - Location of the docker engine endpoint. Defaults to `DOCKER_HOST` env var.
 - `api_version` - API version to use. Defaults to `DOCKER_API_VERSION` env var.
 - `cert_path` - Path to a custom TLS certificate. Defaults to `DOCKER_CERT_PATH` env var.
