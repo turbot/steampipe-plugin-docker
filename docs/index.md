@@ -75,7 +75,7 @@ connection "docker" {
   #  - "*.dockerfile" matches all Dockerfiles in the CWD
   #  - "**/*.dockerfile" matches all Dockerfiles in the CWD and all sub-directories
   #  - "../*.dockerfile" matches all Dockerfiles in the CWD's parent directory
-  #  - "Dockerfile" matches all Dockerfiles named "Dockerfile" in the CWD
+  #  - "Dockerfile.*" matches all Dockerfiles starting with "Dockerfile" in the CWD
   #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
   #  - "/path/to/dir/Dockerfile" matches a specific file
 
