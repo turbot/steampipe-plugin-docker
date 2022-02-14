@@ -17,7 +17,7 @@ Install the plugin with [Steampipe](https://steampipe.io):
 steampipe plugin install docker
 ```
 
-Configure your [config file](https://hub.steampipe.io/plugins/turbot/docker#configuration) to include directories with Docker files. If no directory is specified, the current working directory will be used.
+Configure your [config file](https://hub.steampipe.io/plugins/turbot/docker#configuration) to include directories with Dockerfiles. If no directory is specified, the current working directory will be used.
 
 Run steampipe:
 
