@@ -23,22 +23,20 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	// is given in the steampipe configuration file, then set the env locally for the
 	// process.
 	dockerConfig := GetConfig(d.Connection)
-	if &dockerConfig != nil {
-		if dockerConfig.Host != nil {
-			os.Setenv("DOCKER_HOST", *dockerConfig.Host)
-		}
-		if dockerConfig.APIVersion != nil {
-			os.Setenv("DOCKER_API_VERSION", *dockerConfig.APIVersion)
-		}
-		if dockerConfig.CertPath != nil {
-			os.Setenv("DOCKER_CERT_PATH", *dockerConfig.CertPath)
-		}
-		if dockerConfig.TLSVerify != nil {
-			if *dockerConfig.TLSVerify {
-				os.Setenv("DOCKER_TLS_VERIFY", "1")
-			} else {
-				os.Setenv("DOCKER_TLS_VERIFY", "0")
-			}
+	if dockerConfig.Host != nil {
+		os.Setenv("DOCKER_HOST", *dockerConfig.Host)
+	}
+	if dockerConfig.APIVersion != nil {
+		os.Setenv("DOCKER_API_VERSION", *dockerConfig.APIVersion)
+	}
+	if dockerConfig.CertPath != nil {
+		os.Setenv("DOCKER_CERT_PATH", *dockerConfig.CertPath)
+	}
+	if dockerConfig.TLSVerify != nil {
+		if *dockerConfig.TLSVerify {
+			os.Setenv("DOCKER_TLS_VERIFY", "1")
+		} else {
+			os.Setenv("DOCKER_TLS_VERIFY", "0")
 		}
 	}
 
