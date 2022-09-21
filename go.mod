@@ -2,12 +2,11 @@ module github.com/turbot/steampipe-plugin-docker
 
 go 1.19
 
-replace github.com/turbot/steampipe-plugin-sdk/v5 => github.com/turbot/steampipe-plugin-sdk/v5 v5.0.0-20220921035327-b1172ee29e76
+replace github.com/turbot/steampipe-plugin-sdk/v5 => /Users/lalit/WORK/Turbot/steampipe/integrated-2/steampipe-plugin-sdk
 
-replace github.com/turbot/go-kit => github.com/turbot/go-kit v0.2.2-0.20220920035719-9dab72f47520
+replace github.com/turbot/go-kit => github.com/turbot/go-kit v0.2.2-0.20220921051424-86aea369af01
 
 require (
-	github.com/bmatcuk/doublestar v1.3.4
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1

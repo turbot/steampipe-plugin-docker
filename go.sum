@@ -182,8 +182,6 @@ github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJm
 github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb/go.mod h1:PkYb9DJNAwrSvRx5DYA+gUcOIgTGVMNkfSCbZM8cWpI=
 github.com/blang/semver v3.1.0+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver v3.5.0+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
-github.com/bmatcuk/doublestar v1.3.4 h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0=
-github.com/bmatcuk/doublestar v1.3.4/go.mod h1:wiQtGV+rzVYxB7WIlirSN++5HPtPlXEo9MEoZQC/PmE=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bombsimon/wsl/v2 v2.0.0/go.mod h1:mf25kr/SqFEPhhcxW1+7pxzGlW+hIl/hYTKY95VwV8U=
 github.com/bombsimon/wsl/v2 v2.2.0/go.mod h1:Azh8c3XGEJl9LyX0/sFC+CKMc7Ssgua0g+6abzXN4Pg=
@@ -1037,10 +1035,8 @@ github.com/tommy-muehle/go-mnd v1.1.1/go.mod h1:dSUh0FtTP8VhvkL1S+gUR1OKd9ZnSaoz
 github.com/tommy-muehle/go-mnd v1.3.1-0.20200224220436-e6f9a994e8fa/go.mod h1:dSUh0FtTP8VhvkL1S+gUR1OKd9ZnSaozuI6r3m6wOig=
 github.com/tonistiigi/fsutil v0.0.0-20201103201449-0834f99b7b85/go.mod h1:a7cilN64dG941IOXfhJhlH0qB92hxJ9A1ewrdUmJ6xo=
 github.com/tonistiigi/units v0.0.0-20180711220420-6950e57a87ea/go.mod h1:WPnis/6cRcDZSUvVmezrxJPkiO87ThFYsoUiMwWNDJk=
-github.com/turbot/go-kit v0.2.2-0.20220920035719-9dab72f47520 h1:bGDyobucgTLEcNFt4hAWvtfcAikdpbhhrYNa9XfSKlY=
-github.com/turbot/go-kit v0.2.2-0.20220920035719-9dab72f47520/go.mod h1:wbYT3zaI9Jb6+V99IgnW9Yx69995WDeoiLxVVZPh3/Y=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.0.0-20220921035327-b1172ee29e76 h1:oT/haYJDLnOqhxtbuzEpOxYJeAPG40bK1hrHEpZ35+E=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.0.0-20220921035327-b1172ee29e76/go.mod h1:ariR4lJEYY8MKrGyLvA8wrH81wcL7na6Zmmun3SPjEI=
+github.com/turbot/go-kit v0.2.2-0.20220921051424-86aea369af01 h1:lVcad4tEtST/ivMDRAvvBYQG2aooH9lBkvR2cp2+SNs=
+github.com/turbot/go-kit v0.2.2-0.20220921051424-86aea369af01/go.mod h1:wbYT3zaI9Jb6+V99IgnW9Yx69995WDeoiLxVVZPh3/Y=
 github.com/uber/jaeger-client-go v2.25.0+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.2.0+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6+uUTzImX/AauajbLI56U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
