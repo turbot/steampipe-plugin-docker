@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.0.0-dev.6
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.0.0-dev.7
 )
 
 require (
@@ -83,7 +83,7 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stevenle/topsort v0.0.0-20130922064739-8130c1d7596b // indirect
 	github.com/tkrajina/go-reflector v0.5.4 // indirect
-	github.com/turbot/go-kit v0.5.0-rc.0 // indirect
+	github.com/turbot/go-kit v0.5.0-rc.1 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/zclconf/go-cty v1.10.0 // indirect
 	go.opencensus.io v0.22.4 // indirect
