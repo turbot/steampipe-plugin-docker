@@ -1,12 +1,12 @@
 package docker
 
 import (
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/schema"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
 )
 
 type dockerConfig struct {
-	Paths      []string `cty:"paths"`
+	Paths      []string `cty:"paths" steampipe:"watch"`
 	Host       *string  `cty:"host"`
 	APIVersion *string  `cty:"api_version"`
 	CertPath   *string  `cty:"cert_path"`

@@ -7,8 +7,8 @@ import (
 
 	"github.com/docker/docker/client"
 
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v3/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
