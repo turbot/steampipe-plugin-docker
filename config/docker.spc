@@ -4,18 +4,6 @@ connection "docker" {
   # Paths is a list of locations to search for Dockerfiles
   # All paths are resolved relative to the current working directory (CWD)
   # Wildcard based searches are supported, including recursive searches
-
-  # For example:
-  #  - "*.dockerfile" matches all Dockerfiles in the CWD
-  #  - "**/*.dockerfile" matches all Dockerfiles in the CWD and all sub-directories
-  #  - "../*.dockerfile" matches all Dockerfiles in the CWD's parent directory
-  #  - "Dockerfile.*" matches all Dockerfiles starting with "Dockerfile" in the CWD
-  #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
-  #  - "/path/to/dir/Dockerfile" matches a specific Dockerfile
-
-  # If paths includes "*", all files (including non-Dockerfiles) in
-  # the CWD will be matched, which may cause errors if incompatible file types exist
-
   # Defaults to CWD
   paths = [ "Dockerfile", "*.dockerfile" ]
 

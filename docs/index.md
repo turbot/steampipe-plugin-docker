@@ -70,18 +70,6 @@ connection "docker" {
   # Paths is a list of locations to search for Dockerfiles
   # All paths are resolved relative to the current working directory (CWD)
   # Wildcard based searches are supported, including recursive searches
-
-  # For example:
-  #  - "*.dockerfile" matches all Dockerfiles in the CWD
-  #  - "**/*.dockerfile" matches all Dockerfiles in the CWD and all sub-directories
-  #  - "../*.dockerfile" matches all Dockerfiles in the CWD's parent directory
-  #  - "Dockerfile.*" matches all Dockerfiles starting with "Dockerfile" in the CWD
-  #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
-  #  - "/path/to/dir/Dockerfile" matches a specific file
-
-  # If paths includes "*", all files (including non-Dockerfiles) in
-  # the CWD will be matched, which may cause errors if incompatible file types exist
-
   # Defaults to CWD
   paths = [ "Dockerfile", "*.dockerfile" ]
 
@@ -98,6 +86,43 @@ connection "docker" {
 - `api_version` - API version to use. Defaults to `DOCKER_API_VERSION` env var.
 - `cert_path` - Path to a custom TLS certificate. Defaults to `DOCKER_CERT_PATH` env var.
 - `tls_verify` - Flag to control TLS verification. Defaults to `DOCKER_TLS_VERIFY` env var.
+
+### Setting up paths
+
+The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for Dockerfiles. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+
+#### Configuring local file paths
+
+You can define a list of local directory paths to search for Dockerfiles. Paths are resolved relative to the current working directory. For example:
+
+- `*.dockerfile` matches all Dockerfiles in the CWD.
+- `**/*.dockerfile` matches all Dockerfiles in the CWD and all sub-directories.
+- `../*.dockerfile` matches all Dockerfiles in the CWD's parent directory.
+- `Dockerfile.*` matches all Dockerfiles starting with `Dockerfile` in the CWD.
+- `/path/to/dir/*.dockerfile` matches all Dockerfiles in a specific directory. For example:
+  - `~/*.dockerfile` matches all Dockerfiles in the home directory.
+  - `~/**/*.dockerfile` matches all Dockerfiles recursively in the home directory.
+- `/path/to/dir/Dockerfile` matches a specific file.
+
+**NOTE:** If paths includes `*`, all files (including non-Dockerfiles) in the CWD will be matched, which may cause errors if incompatible file types exist.
+
+#### Configuring GitHub URLs
+
+You can define a list of URL as input to search for Dockerfiles from a variety of protocols. For example:
+
+- `github.com/komljen/dockerfile-examples//*.dockerfile` matches all top-level Dockerfiles in the specified github repository.
+- `github.com/komljen/dockerfile-examples//**/Dockerfile` matches all Dockerfiles in the specified github repository and all sub-directories.
+- `github.com/komljen/dockerfile-examples?ref=fix_7677//**/Dockerfile` matches all Dockerfiles in the specific tag of github repository.
+
+If you want to download only a specific subdirectory from a downloaded directory, you can specify a subdirectory after a double-slash (`//`).
+
+- `github.com/komljen/dockerfile-examples//ghost//Dockerfile` matches all Dockerfiles in the specific folder of a github repository.
+
+#### Configuring S3 URLs
+
+You can also pass a S3 bucket URL to search all Dockerfiles stored in the specified S3 bucket. For example:
+
+- `s3::https://demo-integrated-2022.s3.ap-southeast-1.amazonaws.com/Dockerfile` matches all the Dockerfiles recursively.
 
 ## Get involved
 
