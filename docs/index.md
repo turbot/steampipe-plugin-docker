@@ -89,7 +89,23 @@ connection "docker" {
 
 ### Setting up paths
 
-The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for Dockerfiles. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory.
+The argument `paths` in the config is a list of directory paths, a GitHub repository URL, or a S3 URL to search for Dockerfiles. Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and also support `**` for recursive matching. Defaults to the current working directory. For example:
+
+```hcl
+connection "docker" {
+  plugin = "docker"
+
+  paths = [
+    "Dockerfile",
+    "*.dockerfile",
+    "~/*.dockerfile",
+    "github.com/komljen/dockerfile-examples//*.dockerfile",
+    "github.com/komljen/dockerfile-examples//**/Dockerfile",
+    "git::https://github.com/komljen/dockerfile-examples.git//ghost//Dockerfile",
+    "s3::https://bucket.s3.ap-southeast-1.amazonaws.com/Dockerfile"
+  ]
+}
+```
 
 #### Configuring local file paths
 
@@ -104,6 +120,14 @@ You can define a list of local directory paths to search for Dockerfiles. Paths 
   - `~/**/*.dockerfile` matches all Dockerfiles recursively in the home directory.
 - `/path/to/dir/Dockerfile` matches a specific file.
 
+```hcl
+connection "docker" {
+  plugin = "docker"
+
+  paths = [ "*.dockerfile", "~/*.dockerfile", "/path/to/dir/Dockerfile" ]
+}
+```
+
 **NOTE:** If paths includes `*`, all files (including non-Dockerfiles) in the CWD will be matched, which may cause errors if incompatible file types exist.
 
 #### Configuring GitHub URLs
@@ -113,16 +137,33 @@ You can define a list of URL as input to search for Dockerfiles from a variety o
 - `github.com/komljen/dockerfile-examples//*.dockerfile` matches all top-level Dockerfiles in the specified github repository.
 - `github.com/komljen/dockerfile-examples//**/Dockerfile` matches all Dockerfiles in the specified github repository and all sub-directories.
 - `github.com/komljen/dockerfile-examples?ref=fix_7677//**/Dockerfile` matches all Dockerfiles in the specific tag of github repository.
+- `git::https://github.com/komljen/dockerfile-examples.git//ghost//Dockerfile` matches all Dockerfiles in the given HTTP URL using the Git protocol.
 
 If you want to download only a specific subdirectory from a downloaded directory, you can specify a subdirectory after a double-slash (`//`).
 
 - `github.com/komljen/dockerfile-examples//ghost//Dockerfile` matches all Dockerfiles in the specific folder of a github repository.
 
+```hcl
+connection "docker" {
+  plugin = "docker"
+
+  paths = [ "github.com/komljen/dockerfile-examples//*.dockerfile", "github.com/komljen/dockerfile-examples//ghost//Dockerfile", "git::https://github.com/komljen/dockerfile-examples.git//ghost//Dockerfile" ]
+}
+```
+
 #### Configuring S3 URLs
 
 You can also pass a S3 bucket URL to search all Dockerfiles stored in the specified S3 bucket. For example:
 
-- `s3::https://demo-integrated-2022.s3.ap-southeast-1.amazonaws.com/Dockerfile` matches all the Dockerfiles recursively.
+- `s3::https://bucket.s3.ap-southeast-1.amazonaws.com/docker_examples//**/Dockerfile` matches all the Dockerfiles recursively.
+
+```hcl
+connection "docker" {
+  plugin = "docker"
+
+  paths = [ "s3::https://bucket.s3.ap-southeast-1.amazonaws.com/docker_examples//**/Dockerfile" ]
+}
+```
 
 ## Get involved
 
