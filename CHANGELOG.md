@@ -1,3 +1,14 @@
+## v0.5.0 [2022-11-17]
+
+_What's new?_
+
+- Added support for retrieving Docker files from remote Git repositories and S3 buckets. For more information, please see [Supported Path Formats](https://hub.steampipe.io/plugins/turbot/docker#supported-path-formats). ([#21](https://github.com/turbot/steampipe-plugin-docker/pull/21))
+- Added file watching support for files included in the `paths` config argument. ([#21](https://github.com/turbot/steampipe-plugin-docker/pull/21))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.0.0](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v500-2022-11-16) which includes support for fetching remote files with go-getter and file watching. ([#21](https://github.com/turbot/steampipe-plugin-docker/pull/21))
+
 ## v0.4.0 [2022-09-27]
 
 _Dependencies_
