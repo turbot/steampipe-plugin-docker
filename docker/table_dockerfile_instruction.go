@@ -4,19 +4,17 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/bmatcuk/doublestar"
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableDockerfileInstruction(ctx context.Context) *plugin.Table {
@@ -120,7 +118,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// If the path was requested through qualifier then match it exactly. Globs
 	// are not supported in this context since the output value for the column
 	// will never match the requested value.
-	quals := d.KeyColumnQuals
+	quals := d.EqualsQuals
 	if quals["path"] != nil {
 		d.StreamListItem(ctx, filePath{Path: quals["path"].GetStringValue()})
 		return nil, nil
@@ -138,40 +136,17 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	var matches []string
 	paths := dockerConfig.Paths
 	for _, i := range paths {
-		// Check to resolve ~ to home dir
-		if strings.HasPrefix(i, "~") {
-			// File system context
-			home, err := os.UserHomeDir()
-			if err != nil {
-				plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "os.UserHomeDir error. ~ will not be expanded in paths.", err)
-			}
 
-			// Resolve ~ to home dir
-			if home != "" {
-				if i == "~" {
-					i = home
-				} else if strings.HasPrefix(i, "~/") {
-					i = filepath.Join(home, i[2:])
-				}
-			}
-		}
-
-		// Get full path
-		fullPath, err := filepath.Abs(i)
+		// List the files in the given source directory
+		files, err := d.GetSourceFiles(i)
 		if err != nil {
-			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "failed to fetch absolute path", err, "path", i)
 			return nil, err
 		}
-
-		iMatches, err := doublestar.Glob(fullPath)
-		if err != nil {
-			// Fail if any path is an invalid glob
-			return nil, fmt.Errorf("Path is not a valid glob: %s", i)
-		}
-		matches = append(matches, iMatches...)
+		plugin.Logger(ctx).Warn("dockerfileList", "source", i, "files", files)
+		matches = append(matches, files...)
 	}
 
-	// Sanitize the matches to likely dockerfiles
+	// Sanitize the matches to likely dockerfiles files
 	for _, i := range matches {
 		// Check if file or directory
 		fileInfo, err := os.Stat(i)
