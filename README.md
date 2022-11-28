@@ -29,12 +29,10 @@ Run a query:
 
 ```sql
 select
-  cmd,
+  instruction,
   data
 from
-  dockerfile_cmd
-where
-  path = '/my/Dockerfile'
+  dockerfile_instruction
 order by
   start_line;
 ```

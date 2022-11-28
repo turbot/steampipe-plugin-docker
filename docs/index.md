@@ -20,25 +20,25 @@ Query commands from a Dockerfile:
 
 ```sql
 select
-  cmd,
-  args
+  instruction,
+  data
 from
-  dockerfile_cmd
-where
-  path = '/my/Dockerfile';
+  dockerfile_instruction
+order by
+  start_line;
 ```
 
 ```
-+---------+--------------------------------------------------------------------------+
-| cmd     | data                                                                     |
-+---------+--------------------------------------------------------------------------+
-| from    | {"image":"node","tag":"12-alpine"}                                       |
-| run     | {"commands":["apk add --no-cache python g++ make"],"prepend_shell":true} |
-| workdir | {"path":"/app"}                                                          |
-| copy    | {"dest":".","sources":["."]}                                             |
-| run     | {"commands":["yarn install --production"],"prepend_shell":true}          |
-| cmd     | {"commands":["node","src/index.js"]}                                     |
-+---------+--------------------------------------------------------------------------+
++-------------+--------------------------------------------------------------------------+
+| instruction | data                                                                     |
++-------------+--------------------------------------------------------------------------+
+| from        | {"image":"node","tag":"12-alpine"}                                       |
+| run         | {"commands":["apk add --no-cache python g++ make"],"prepend_shell":true} |
+| workdir     | {"path":"/app"}                                                          |
+| copy        | {"dest":".","sources":["."]}                                             |
+| run         | {"commands":["yarn install --production"],"prepend_shell":true}          |
+| cmd         | {"commands":["node","src/index.js"]}                                     |
++-------------+--------------------------------------------------------------------------+
 ```
 
 ## Documentation

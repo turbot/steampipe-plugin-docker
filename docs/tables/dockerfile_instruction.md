@@ -1,6 +1,6 @@
 # Table: dockerfile_instruction
 
-List and query instructions from Dockerfile's.
+List and query instructions from Dockerfiles.
 
 ## Examples
 
