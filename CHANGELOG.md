@@ -1,3 +1,9 @@
+## v0.5.1 [2022-11-28]
+
+_Bug fixes_
+
+- Fixed example queries in README and docs/index.md.
+
 ## v0.5.0 [2022-11-17]
 
 _What's new?_
