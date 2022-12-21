@@ -12,6 +12,7 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
 
+	filehelpers "github.com/turbot/go-kit/files"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -146,31 +147,11 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		matches = append(matches, files...)
 	}
 
-	// Sanitize the matches to likely dockerfiles files
+	// Sanitize the matches to ignore the directories
 	for _, i := range matches {
-		// Check if file or directory
-		fileInfo, err := os.Stat(i)
-		if err != nil {
-			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "error getting file info", err, "path", i)
-			return nil, err
-		}
 
 		// Ignore directories
-		if fileInfo.IsDir() {
-			continue
-		}
-
-		// If the file path is an exact match to a matrix path then it's always
-		// treated as a match - it was requested exactly
-		hit := false
-		for _, j := range paths {
-			if i == j {
-				hit = true
-				break
-			}
-		}
-		if hit {
-			d.StreamListItem(ctx, filePath{Path: i})
+		if filehelpers.DirectoryExists(i) {
 			continue
 		}
 		d.StreamListItem(ctx, filePath{Path: i})
