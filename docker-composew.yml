@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  web:
+    image: nginx:latest
+    container_name: my_container_name
+    domainname: my_domain_name
+    ports:
+      - 80:80
+    networks:
+      - mynetwork
+    environment:
+      - APP_ENV=production
+      - DB_USER=my_db_username
+      - DB_PASSWORD=my_db_password
+    volumes:
+      - myvolume:/app
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/nginx.conf
+    profiles:
+      - my_profile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cap_add:
+      - CAPABILITY_NAME1
+      - CAPABILITY_NAME2
+    cap_drop:
+      - CAPABILITY_NAME3
+      - CAPABILITY_NAME4
+    cpu_count: 2
+    cpu_percent: 80
+
+networks:
+  mynetwork:
+    name: my_custom_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/24
+          gateway: 172.16.0.1
+    internal: false
+    enable_ipv6: false
+    labels:
+      - my_label_1=example1
+      - my_label_2=example2
+
+volumes:
+  myvolume:
+
+configs:
+  nginx_config:
+    file: ./config/nginx.conf
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt

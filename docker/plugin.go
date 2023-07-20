@@ -22,6 +22,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"docker_info":            tableDockerInfo(ctx),
 			"docker_network":         tableDockerNetwork(ctx),
 			"docker_volume":          tableDockerVolume(ctx),
+			"docker_compose_service": tableDockerComposeService(ctx),
+			"docker_compose_network": tableDockerComposeNetwork(ctx),
 		},
 	}
 	return p
