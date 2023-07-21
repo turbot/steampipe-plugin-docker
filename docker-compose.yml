@@ -18,6 +18,12 @@ services:
     configs:
       - source: nginx_config
         target: /etc/nginx/nginx.conf
+        uid: "101"
+        gid: "101"
+        mode: 0444
+    secrets:
+      - source: db_password
+        target: /run/secrets/db_password
     profiles:
       - my_profile
     build:
@@ -49,11 +55,23 @@ networks:
 
 volumes:
   myvolume:
+    name: testVolume
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.1.100,rw
+      device: ":/path/to/volume"
 
 configs:
   nginx_config:
+    name: my_nginx_config
     file: ./config/nginx.conf
+    labels:
+      - my_label=nginx_config
 
 secrets:
   db_password:
-    file: ./secrets/db_password.txt
+    name: my_db_password_secret
+    labels:
+      - my_label=db_password
+    external: false

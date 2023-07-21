@@ -76,7 +76,7 @@ func tableDockerComposeNetwork(ctx context.Context) *plugin.Table {
 }
 
 func listComposeNetworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	composeFilePath := "docker-composew.yml"
+	composeFilePath := "docker-compose.yml"
 
 	// docker compose config renders the actual data model to be applied on the Docker engine. It merges the Compose files set by -f flags, resolves variables in the Compose file, and expands short-notation into the canonical format.
 	cmd := exec.Command("docker-compose", "-f", composeFilePath, "config")
