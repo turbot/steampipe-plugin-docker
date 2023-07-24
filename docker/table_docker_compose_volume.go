@@ -1,9 +1,7 @@
 package docker
 
 import (
-	"bytes"
 	"context"
-	"os/exec"
 
 	"github.com/compose-spec/compose-go/loader"
 
@@ -54,40 +52,26 @@ func tableDockerComposeVolume(ctx context.Context) *plugin.Table {
 }
 
 func listComposeVolumes(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	composeFilePath := "docker-compose.yml"
-
-	// docker compose config renders the actual data model to be applied on the Docker engine. It merges the Compose files set by -f flags, resolves variables in the Compose file, and expands short-notation into the canonical format.
-	cmd := exec.Command("docker-compose", "-f", composeFilePath, "config")
-
-	// Redirect the command output to a buffer
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
-
-	// Run the command
-	err := cmd.Run()
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_volume.listComposeVolumes", "cmd_error", err)
-		return nil, err
-	}
-
-	parsedCompose, err := loader.ParseYAML(stdout.Bytes())
+	parsedComposeData, err := getParsedComposeData(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("docker_compose_volume.listComposeVolumes", "parse_error", err)
 		return nil, err
 	}
 
-	section, ok := parsedCompose["volumes"]
-	if !ok {
-		return nil, err
-	}
-	volumes, err := loader.LoadVolumes(section.(map[string]interface{}))
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_service.listComposeVolumes", "load_error", err)
-		return nil, err
-	}
+	for _, parsedData := range parsedComposeData {
+		section, ok := parsedData["volumes"]
+		if !ok {
+			return nil, err
+		}
+		volumes, err := loader.LoadVolumes(section.(map[string]interface{}))
+		if err != nil {
+			plugin.Logger(ctx).Error("docker_compose_service.listComposeVolumes", "load_error", err)
+			return nil, err
+		}
 
-	for _, volume := range volumes {
-		d.StreamListItem(ctx, volume)
+		for _, volume := range volumes {
+			d.StreamListItem(ctx, volume)
+		}
 	}
 	return nil, nil
 }

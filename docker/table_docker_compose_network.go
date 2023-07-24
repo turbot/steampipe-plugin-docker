@@ -1,9 +1,7 @@
 package docker
 
 import (
-	"bytes"
 	"context"
-	"os/exec"
 
 	"github.com/compose-spec/compose-go/loader"
 
@@ -76,52 +74,26 @@ func tableDockerComposeNetwork(ctx context.Context) *plugin.Table {
 }
 
 func listComposeNetworks(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	composeFilePath := "docker-compose.yml"
-
-	// docker compose config renders the actual data model to be applied on the Docker engine. It merges the Compose files set by -f flags, resolves variables in the Compose file, and expands short-notation into the canonical format.
-	cmd := exec.Command("docker-compose", "-f", composeFilePath, "config")
-
-	// Redirect the command output to a buffer
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
-
-	// Run the command
-	err := cmd.Run()
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_network.listComposeNetworks", "cmd_error", err)
-		return nil, err
-	}
-
-	parsedCompose, err := loader.ParseYAML(stdout.Bytes())
+	parsedComposeData, err := getParsedComposeData(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("docker_compose_network.listComposeNetworks", "parse_error", err)
 		return nil, err
 	}
 
-	// configFile := types.ConfigFile{}
-	// configFile.Config = parsedCompose
-	// configDetails := types.ConfigDetails{
-	// 	ConfigFiles: []types.ConfigFile{configFile},
-	// }
+	for _, parsedData := range parsedComposeData {
+		section, ok := parsedData["networks"]
+		if !ok {
+			return nil, err
+		}
+		networks, err := loader.LoadNetworks(section.(map[string]interface{}))
+		if err != nil {
+			plugin.Logger(ctx).Error("docker_compose_service.listComposeServices", "load_error", err)
+			return nil, err
+		}
 
-	// project, err := loader.Load(configDetails)
-	// if err != nil {
-	// 	plugin.Logger(ctx).Error("docker_compose_network.listComposeNetworks", "load_error", err)
-	// 	return nil, err
-	// }
-
-	section, ok := parsedCompose["networks"]
-	if !ok {
-		return nil, err
-	}
-	networks, err := loader.LoadNetworks(section.(map[string]interface{}))
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_service.listComposeServices", "load_error", err)
-		return nil, err
-	}
-
-	for _, network := range networks {
-		d.StreamListItem(ctx, network)
+		for _, network := range networks {
+			d.StreamListItem(ctx, network)
+		}
 	}
 	return nil, nil
 }

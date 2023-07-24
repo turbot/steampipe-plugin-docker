@@ -1,9 +1,7 @@
 package docker
 
 import (
-	"bytes"
 	"context"
-	"os/exec"
 
 	"github.com/compose-spec/compose-go/loader"
 
@@ -69,40 +67,26 @@ func tableDockerComposeSecret(ctx context.Context) *plugin.Table {
 }
 
 func listComposeSecrets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	composeFilePath := "docker-compose.yml"
-
-	// docker compose config renders the actual data model to be applied on the Docker engine. It merges the Compose files set by -f flags, resolves variables in the Compose file, and expands short-notation into the canonical format.
-	cmd := exec.Command("docker-compose", "-f", composeFilePath, "config")
-
-	// Redirect the command output to a buffer
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
-
-	// Run the command
-	err := cmd.Run()
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_secret.listComposeSecrets", "cmd_error", err)
-		return nil, err
-	}
-
-	parsedCompose, err := loader.ParseYAML(stdout.Bytes())
+	parsedComposeData, err := getParsedComposeData(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("docker_compose_secret.listComposeSecrets", "parse_error", err)
 		return nil, err
 	}
 
-	section, ok := parsedCompose["secrets"]
-	if !ok {
-		return nil, err
-	}
-	secrets, err := loader.LoadSecrets(section.(map[string]interface{}))
-	if err != nil {
-		plugin.Logger(ctx).Error("docker_compose_service.listComposeSecrets", "load_error", err)
-		return nil, err
-	}
+	for _, parsedData := range parsedComposeData {
+		section, ok := parsedData["secrets"]
+		if !ok {
+			return nil, err
+		}
+		secrets, err := loader.LoadSecrets(section.(map[string]interface{}))
+		if err != nil {
+			plugin.Logger(ctx).Error("docker_compose_service.listComposeSecrets", "load_error", err)
+			return nil, err
+		}
 
-	for _, secret := range secrets {
-		d.StreamListItem(ctx, secret)
+		for _, secret := range secrets {
+			d.StreamListItem(ctx, secret)
+		}
 	}
 	return nil, nil
 }
