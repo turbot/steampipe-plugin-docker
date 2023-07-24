@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  web:
+    image: nginx:latest
+    container_name: my_container_name
+    domainname: my_domain_name
+    ports:
+      - 80:80
+    networks:
+      - mynetwork
+    environment:
+      - APP_ENV=production
+      - DB_USER=my_db_username
+      - DB_PASSWORD=my_db_password
+    volumes:
+      - myvolume:/app
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/nginx.conf
+        uid: "101"
+        gid: "101"
+        mode: 0444
+    secrets:
+      - source: db_password
+        target: /run/secrets/db_password
+    profiles:
+      - my_profile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    cap_add:
+      - CAPABILITY_NAME1
+      - CAPABILITY_NAME2
+    cap_drop:
+      - CAPABILITY_NAME3
+      - CAPABILITY_NAME4
+    cpu_count: 2
+    cpu_percent: 80
+
+networks:
+  mynetwork:
+    name: my_custom_network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/24
+          gateway: 172.16.0.1
+    internal: false
+    enable_ipv6: false
+    labels:
+      - my_label_1=example1
+      - my_label_2=example2
+
+volumes:
+  myvolume:
+    name: testVolume
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.1.100,rw
+      device: ":/path/to/volume"
+
+configs:
+  nginx_config:
+    name: my_nginx_config
+    file: ./config/nginx.conf
+    labels:
+      - my_label=nginx_config
+
+secrets:
+  db_password:
+    name: my_db_password_secret
+    labels:
+      - my_label=db_password
+    external: false
