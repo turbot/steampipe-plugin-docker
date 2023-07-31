@@ -36,7 +36,7 @@ func tableDockerContainer(ctx context.Context) *plugin.Table {
 			{Name: "network_settings", Type: proto.ColumnType_JSON, Description: "Network settings for the container."},
 			{Name: "mounts", Type: proto.ColumnType_JSON, Description: "Volume mounts for the container."},
 			{Name: "config", Type: proto.ColumnType_JSON, Description: "Config contains the configuration data about a container.", Hydrate: getContainerInspect},
-			{Name: "inspect", Type: proto.ColumnType_JSON, Description: "ContainerInspect returns the container information.", Hydrate: getContainerInspect, Transform: transform.FromValue()},
+			{Name: "inspect", Type: proto.ColumnType_JSON, Description: "Container Inspect returns the container information.", Hydrate: getContainerInspect, Transform: transform.FromValue()},
 		},
 	}
 }
@@ -71,7 +71,7 @@ func getContainerInspect(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	info, err := conn.ContainerInspect(ctx, container.ID)
+	info, err := conn.ContainerDiff(ctx, container.ID)
 	if err != nil {
 		plugin.Logger(ctx).Error("docker_container.getContainerInspect", "query_error", err)
 		return nil, err
