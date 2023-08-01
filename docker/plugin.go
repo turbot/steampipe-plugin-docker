@@ -16,17 +16,17 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 		},
 		DefaultTransform: transform.FromGo(),
 		TableMap: map[string]*plugin.Table{
-			"dockerfile_instruction": tableDockerfileInstruction(ctx),
+			"docker_compose_config":  tableDockerComposeConfig(ctx),
+			"docker_compose_network": tableDockerComposeNetwork(ctx),
+			"docker_compose_secret":  tableDockerComposeSecret(ctx),
+			"docker_compose_service": tableDockerComposeService(ctx),
+			"docker_compose_volume":  tableDockerComposeVolume(ctx),
 			"docker_container":       tableDockerContainer(ctx),
 			"docker_image":           tableDockerImage(ctx),
 			"docker_info":            tableDockerInfo(ctx),
 			"docker_network":         tableDockerNetwork(ctx),
 			"docker_volume":          tableDockerVolume(ctx),
-			"docker_compose_service": tableDockerComposeService(ctx),
-			"docker_compose_network": tableDockerComposeNetwork(ctx),
-			"docker_compose_volume":  tableDockerComposeVolume(ctx),
-			"docker_compose_secret":  tableDockerComposeSecret(ctx),
-			"docker_compose_config":  tableDockerComposeConfig(ctx),
+			"dockerfile_instruction": tableDockerfileInstruction(ctx),
 		},
 	}
 	return p
