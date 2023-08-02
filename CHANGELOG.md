@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Added the `config` and `inspect` columns to the `docker_container` table. ([#31](https://github.com/turbot/steampipe-plugin-docker/pull/31))
+- Added `config` and `inspect` columns to the `docker_container` table. ([#31](https://github.com/turbot/steampipe-plugin-docker/pull/31))
 
 ## v0.6.0 [2023-04-11]
 
