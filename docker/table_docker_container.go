@@ -35,6 +35,8 @@ func tableDockerContainer(ctx context.Context) *plugin.Table {
 			{Name: "host_config", Type: proto.ColumnType_JSON, Description: "Host configuration for the container."},
 			{Name: "network_settings", Type: proto.ColumnType_JSON, Description: "Network settings for the container."},
 			{Name: "mounts", Type: proto.ColumnType_JSON, Description: "Volume mounts for the container."},
+			{Name: "config", Type: proto.ColumnType_JSON, Description: "Config contains the configuration data about a container.", Hydrate: getContainerInspect},
+			{Name: "inspect", Type: proto.ColumnType_JSON, Description: "Container Inspect returns the container information.", Hydrate: getContainerInspect, Transform: transform.FromValue()},
 		},
 	}
 }
@@ -58,4 +60,22 @@ func listContainer(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDa
 		d.StreamListItem(ctx, i)
 	}
 	return nil, nil
+}
+
+func getContainerInspect(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	container := h.Item.(types.Container)
+
+	conn, err := connect(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("docker_container.getContainerInspect", "connection_error", err)
+		return nil, err
+	}
+
+	info, err := conn.ContainerInspect(ctx, container.ID)
+	if err != nil {
+		plugin.Logger(ctx).Error("docker_container.getContainerInspect", "query_error", err)
+		return nil, err
+	}
+
+	return info, nil
 }
