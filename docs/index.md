@@ -67,10 +67,10 @@ Installing the latest docker plugin will create a config file (`~/.steampipe/con
 connection "docker" {
   plugin = "docker"
 
-  # Paths is a list of locations to search for Dockerfiles
-  # Paths can be configured with a local directory, a remote Git repository URL, or an S3 bucket URL
+  # dockerfile_paths is a list of locations to search for Dockerfiles
+  # dockerfile_paths can be configured with a local directory, a remote Git repository URL, or an S3 bucket URL
   # Wildcard based searches are supported, including recursive searches
-  # Local paths are resolved relative to the current working directory (CWD)
+  # Local dockerfile_paths are resolved relative to the current working directory (CWD)
 
   # For example:
   #  - "*.dockerfile" matches all Dockerfiles in the CWD
@@ -80,11 +80,32 @@ connection "docker" {
   #  - "/path/to/dir/*.dockerfile" matches all Dockerfiles in a specific directory
   #  - "/path/to/dir/Dockerfile" matches a specific Dockerfile
 
-  # If paths includes "*", all files (including non-Dockerfiles) in
+  # If dockerfile_paths includes "*", all files (including non-Dockerfiles) in
   # the CWD will be matched, which may cause errors if incompatible file types exist
 
   # Defaults to CWD
-  paths = [ "Dockerfile", "*.dockerfile" ]
+  dockerfile_paths = [ "Dockerfile", "*.dockerfile" ]
+
+  # docker_compose_file_paths is a list of locations to search for Docker Compose files
+  # docker_compose_file_paths can be configured with a local directory, a remote Git repository URL, or an S3 bucket URL
+  # Wildcard based searches are supported, including recursive searches
+  # Local docker_compose_file_paths are resolved relative to the current working directory (CWD)
+
+  # For example:
+  #  - "*.yml" or "*.yaml" matches all Docker Compose files in the CWD
+  #  - "**/*.yml" matches all Docker Compose files in the CWD and all sub-directories
+  #  - "../*.yml" matches all Docker Compose files in the CWD's parent directory
+  #  - "/path/to/dir/*.yml" matches all Docker Compose files in a specific directory
+  #  - "/path/to/dir/compose.yml" matches a specific Docker Compose file
+
+  # If docker_compose_file_paths includes "*", all files (including non-DockerComposefiles) in
+  # the CWD will be matched, which may cause errors if incompatible file types exist
+
+  # If docker_compose_file_paths is not set, the plugin will proceed with the below default compose files if they are in CWD:
+  # - compose.yaml, compose.yml, docker-compose.yml, docker-compose.yaml
+
+  # Defaults to CWD
+  # docker_compose_file_paths = ["compose.yml", "*compose.yml"]
 
   # Optional docker engine configuration.
   # host        = "tcp://192.168.59.103:2376"
@@ -101,7 +122,7 @@ connection "docker" {
 
 ### Supported Path Formats
 
-The `paths` config argument is flexible and can search for Dockerfiles from several different sources, e.g., local directory paths, Git, S3.
+The `dockerfile_paths` and `docker_compose_file_paths` config arguments are flexible and can search for Dockerfiles and DockerCompose files from several different sources, e.g., local directory paths, Git, S3.
 
 The following sources are supported:
 
@@ -109,13 +130,13 @@ The following sources are supported:
 - [Remote Git repositories](#configuring-remote-git-repository-urls)
 - [S3](#configuring-s3-urls)
 
-Paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and support `**` for recursive matching. For example:
+Dockerfile and DockerCompose paths may [include wildcards](https://pkg.go.dev/path/filepath#Match) and support `**` for recursive matching. For example:
 
 ```hcl
 connection "docker" {
   plugin = "docker"
 
-  paths = [
+  dockerfile_paths = [
     "Dockerfile",
     "*.dockerfile",
     "~/*.dockerfile",
@@ -125,14 +146,25 @@ connection "docker" {
     "bitbucket.org/fscm/docker-docker//Dockerfile",
     "s3::https://bucket.s3.ap-southeast-1.amazonaws.com/Dockerfile"
   ]
+
+  docker_compose_file_paths = [
+    "compose.yml",
+    "*.yml",
+    "~/*.yml",
+    "github.com/komljen/dockercomposefile-examples//*.yml",
+    "github.com/komljen/dockercomposefile-examples//**/DockerComposefile",
+    "gitlab.com/gitlab-examples/docker//DockerComposefile",
+    "bitbucket.org/fscm/docker-docker//DockerComposefile",
+    "s3::https://bucket.s3.ap-southeast-1.amazonaws.com/DockerComposefile"
+  ]
 }
 ```
 
-**Note**: If any path matches on `*` without `Dockerfile` or `*.dockerfile`, all files (including non-Dockerfiles) in the directory will be matched, which may cause errors if incompatible file types exist.
+**Note**: If any path matches on `*` without `Dockerfile` or `*.dockerfile` or `*.yml`, all files (including non-Dockerfiles and non-DockerCompose files) in the directory will be matched, which may cause errors if incompatible file types exist.
 
 #### Configuring Local File Paths
 
-You can define a list of local directory paths to search for Dockerfiles. Paths are resolved relative to the current working directory. For example:
+You can define a list of local directory paths to search for Dockerfiles or DockerCompose files. Paths are resolved relative to the current working directory. For example:
 
 - `*.dockerfile` matches all Dockerfiles in the CWD.
 - `**/*.dockerfile` matches all Dockerfiles in the CWD and all sub-directories.
@@ -143,17 +175,27 @@ You can define a list of local directory paths to search for Dockerfiles. Paths 
   - `~/**/*.dockerfile` matches all Dockerfiles recursively in the home directory.
 - `/path/to/dir/Dockerfile` matches a specific file.
 
+- `*.yml` or `*.yaml` matches all Docker Compose files in the CWD
+- `**/*.yml` matches all Docker Compose files in the CWD and all sub-directories
+- `../*.yml` matches all Docker Compose files in the CWD's parent directory
+- `/path/to/dir/*.yml` matches all Docker Compose files in a specific directory. For example:
+  - `~/*.yml` matches all DockerCompose files in the home directory.
+  - `~/**/*.yml` matches all DockerCompose files recursively in the home directory.
+- `/path/to/dir/compose.yml" matches a specific Docker Compose file
+
 ```hcl
 connection "docker" {
   plugin = "docker"
 
-  paths = [ "*.dockerfile", "~/*.dockerfile", "/path/to/dir/Dockerfile" ]
+  dockerfile_paths = [ "*.dockerfile", "~/*.dockerfile", "/path/to/dir/Dockerfile" ]
+
+  docker_compose_file_paths = [ "*compose.yml", "~/*.yml", "/path/to/dir/compose.yml" ]
 }
 ```
 
 #### Configuring Remote Git Repository URLs
 
-You can also configure `paths` with any Git remote repository URLs, e.g., GitHub, BitBucket, GitLab. The plugin will then attempt to retrieve any Dockerfiles from the remote repositories.
+You can also configure `dockerfile_paths` and `docker_compose_file_paths` with any Git remote repository URLs, e.g., GitHub, BitBucket, GitLab. The plugin will then attempt to retrieve any Dockerfiles from the remote repositories.
 
 For example:
 
@@ -162,23 +204,30 @@ For example:
 - `github.com/komljen/dockerfile-examples?ref=fix_7677//**/Dockerfile` matches all Dockerfiles in the specific tag of github repository.
 - `github.com/komljen/dockerfile-examples//ghost//Dockerfile` matches all Dockerfiles in the specified folder path.
 
+- `github.com/komljen/dockerComposefile-examples//*.yml` matches all top-level DockerCompose files in the specified github repository.
+- `github.com/komljen/dockerComposefile-examples//**/DockerComposefile` matches all DockerCompose files in the specified github repository and all sub-directories.
+- `github.com/komljen/dockerComposefile-examples?ref=fix_7677//**/DockerComposefile` matches all DockerCompose files in the specific tag of github repository.
+- `github.com/komljen/dockerComposefile-examples//ghost//DockerComposefile` matches all DockerCompose files in the specified folder path.
+
 You can specify a subdirectory after a double-slash (`//`) if you want to download only a specific subdirectory from a downloaded directory.
 
 ```hcl
 connection "docker" {
   plugin = "docker"
 
-  paths = [ "github.com/komljen/dockerfile-examples//ghost//Dockerfile" ]
+  dockerfile_paths = [ "github.com/komljen/dockerfile-examples//ghost//Dockerfile" ]
+
+  docker_compose_file_paths = [ "github.com/komljen/dockerComposefile-examples//ghost//DockerComposefile" ]
 }
 ```
 
-Similarly, you can define a list of GitLab and BitBucket URLs to search for Dockerfiles:
+Similarly, you can define a list of GitLab and BitBucket URLs to search for Dockerfiles and DockerCompose files:
 
 ```hcl
 connection "docker" {
   plugin = "docker"
 
-  paths = [
+  dockerfile_paths = [
     "github.com/komljen/dockerfile-examples//**/Dockerfile",
     "github.com/komljen/dockerfile-examples//ghost//Dockerfile",
     "gitlab.com/gitlab-examples/docker//Dockerfile",
@@ -186,12 +235,21 @@ connection "docker" {
     "bitbucket.org/fscm/docker-docker//Dockerfile",
     "bitbucket.org/fscm/docker-docker//**/Dockerfile"
   ]
+
+  docker_compose_file_paths = [
+    "github.com/komljen/dockerComposefile-examples//**/DockerComposefile",
+    "github.com/komljen/dockerComposefile-examples//ghost//DockerComposefile",
+    "gitlab.com/gitlab-examples/docker//DockerComposefile",
+    "gitlab.com/gitlab-examples/docker//**/DockerComposefile"
+    "bitbucket.org/fscm/docker-docker//DockerComposefile",
+    "bitbucket.org/fscm/docker-docker//**/DockerComposefile"
+  ]
 }
 ```
 
 #### Configuring S3 URLs
 
-You can also query all Dockerfiles stored inside an S3 bucket (public or private) using the bucket URL.
+You can also query all Dockerfiles and DockerCompose files stored inside an S3 bucket (public or private) using the bucket URL.
 
 ##### Accessing a Private Bucket
 
@@ -201,15 +259,20 @@ We recommend using AWS profiles for authentication.
 
 **Note:** Make sure that `region` is configured in the config. If not set in the config, `region` will be fetched from the standard environment variable `AWS_REGION`.
 
-You can also authenticate your request by setting the AWS profile and region in `paths`. For example:
+You can also authenticate your request by setting the AWS profile and region in `dockerfile_paths` and `docker_compose_file_paths`. For example:
 
 ```hcl
 connection "docker" {
   plugin = "docker"
 
-  paths = [
+  dockerfile_paths = [
     "s3::https://bucket-2.s3.us-east-1.amazonaws.com//Dockerfile?aws_profile=<AWS_PROFILE>",
     "s3::https://bucket-2.s3.us-east-1.amazonaws.com/test_folder//*.dockerfile?aws_profile=<AWS_PROFILE>"
+  ]
+
+  docker_compose_file_paths = [
+    "s3::https://bucket-2.s3.us-east-1.amazonaws.com//DockerComposefile?aws_profile=<AWS_PROFILE>",
+    "s3::https://bucket-2.s3.us-east-1.amazonaws.com/test_folder//*.yml?aws_profile=<AWS_PROFILE>"
   ]
 }
 ```
@@ -251,9 +314,14 @@ You can query any public S3 bucket directly using the URL without passing creden
 connection "docker" {
   plugin = "docker"
 
-  paths = [
+  dockerfile_paths = [
     "s3::https://bucket-1.s3.us-east-1.amazonaws.com/test_folder//Dockerfile",
     "s3::https://bucket-2.s3.us-east-1.amazonaws.com/test_folder//**/*.dockerfile"
+  ]
+
+  docker_compose_file_paths = [
+    "s3::https://bucket-1.s3.us-east-1.amazonaws.com/test_folder//DockerComposefile",
+    "s3::https://bucket-2.s3.us-east-1.amazonaws.com/test_folder//**/*.yml"
   ]
 }
 ```
