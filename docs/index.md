@@ -102,7 +102,7 @@ connection "docker" {
   # the CWD will be matched, which may cause errors if incompatible file types exist
 
   # Defaults to CWD
-  # docker_compose_file_paths = ["compose.yml", "*compose.yml"]
+  docker_compose_file_paths = ["compose.yml", "*compose.yml"]
 
   # Optional docker engine configuration.
   # host        = "tcp://192.168.59.103:2376"
