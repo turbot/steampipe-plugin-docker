@@ -35,9 +35,6 @@ connection "docker" {
   # If docker_compose_file_paths includes "*", all files (including non-DockerComposefiles) in
   # the CWD will be matched, which may cause errors if incompatible file types exist
 
-  # If docker_compose_file_paths is not set, the plugin will proceed with the below default compose files if they are in CWD:
-  # - compose.yaml, compose.yml, docker-compose.yml, docker-compose.yaml
-
   # Defaults to CWD
   # docker_compose_file_paths = ["compose.yml", "*compose.yml"]
 

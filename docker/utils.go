@@ -91,16 +91,8 @@ func getParsedComposeDataUncached(ctx context.Context, d *plugin.QueryData, _ *p
 	// Gather file path matches for the glob
 	var matches []string
 
-	if dockerConfig.DockerComposeFilePaths == nil {
-
-		// add the default available files in CWD
-		defaultFiles := []string{"compose.yaml", "compose.yml", "docker-compose.yml", "docker-compose.yaml"}
-		for _, file := range defaultFiles {
-			_, err := os.Stat(file)
-			if err == nil {
-				matches = append(matches, file)
-			}
-		}
+	if dockerConfig.DockerComposeFilePaths == nil || len(dockerConfig.DockerComposeFilePaths) == 0 {
+		return nil, nil
 	} else {
 		for _, i := range dockerConfig.DockerComposeFilePaths {
 
