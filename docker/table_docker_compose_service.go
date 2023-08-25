@@ -169,7 +169,7 @@ func tableDockerComposeService(ctx context.Context) *plugin.Table {
 				Transform:   transform.FromField("DNS"),
 			},
 			{
-				Name:        "dns_opt",
+				Name:        "dns_opts",
 				Type:        proto.ColumnType_JSON,
 				Description: "List of DNS options.",
 				Transform:   transform.FromField("DNSOpts"),
