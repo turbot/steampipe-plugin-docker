@@ -6,15 +6,25 @@ import (
 )
 
 type dockerConfig struct {
-	Paths      []string `cty:"paths" steampipe:"watch"`
-	Host       *string  `cty:"host"`
-	APIVersion *string  `cty:"api_version"`
-	CertPath   *string  `cty:"cert_path"`
-	TLSVerify  *bool    `cty:"tls_verify"`
+	Paths                  []string `cty:"paths" steampipe:"watch"`
+	DockerfilePaths        []string `cty:"dockerfile_paths" steampipe:"watch"`
+	DockerComposeFilePaths []string `cty:"docker_compose_file_paths" steampipe:"watch"`
+	Host                   *string  `cty:"host"`
+	APIVersion             *string  `cty:"api_version"`
+	CertPath               *string  `cty:"cert_path"`
+	TLSVerify              *bool    `cty:"tls_verify"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
 	"paths": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
+	},
+	"dockerfile_paths": {
+		Type: schema.TypeList,
+		Elem: &schema.Attribute{Type: schema.TypeString},
+	},
+	"docker_compose_file_paths": {
 		Type: schema.TypeList,
 		Elem: &schema.Attribute{Type: schema.TypeString},
 	},

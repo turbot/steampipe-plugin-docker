@@ -129,14 +129,22 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	// Fail if no paths are specified
 	dockerConfig := GetConfig(d.Connection)
-	if dockerConfig.Paths == nil {
-		return nil, errors.New("paths must be configured")
+
+	plugin.Logger(ctx).Warn("paths parameter is deprecated and will be removed after 31st August 2023, please use dockerfile_paths instead.")
+	if dockerConfig.Paths == nil && dockerConfig.DockerfilePaths == nil {
+		return nil, errors.New("dockerfile_paths must be configured")
 	}
 
 	// Gather file path matches for the glob
 	var matches []string
-	paths := dockerConfig.Paths
-	for _, i := range paths {
+	var dPath []string
+
+	if dockerConfig.Paths != nil {
+		dPath = append(dPath, dockerConfig.Paths...)
+	} else {
+		dPath = append(dPath, dockerConfig.DockerfilePaths...)
+	}
+	for _, i := range dPath {
 
 		// List the files in the given source directory
 		files, err := d.GetSourceFiles(i)

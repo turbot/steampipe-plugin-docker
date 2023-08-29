@@ -1,11 +1,15 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"os"
+	"os/exec"
 	"time"
 
+	"github.com/compose-spec/compose-go/loader"
 	"github.com/docker/docker/client"
+	"github.com/pkg/errors"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -68,4 +72,70 @@ func timeToTimestamp(_ context.Context, d *transform.TransformData) (interface{}
 		return nil, nil
 	}
 	return string(tsBytes), nil
+}
+
+func getParsedComposeData(ctx context.Context, d *plugin.QueryData) ([]map[string]interface{}, error) {
+	conn, err := getParsedComposeDataCached(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn.([]map[string]interface{}), nil
+}
+
+var getParsedComposeDataCached = plugin.HydrateFunc(getParsedComposeDataUncached).Memoize()
+
+func getParsedComposeDataUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (any, error) {
+	dockerConfig := GetConfig(d.Connection)
+
+	// Gather file path matches for the glob
+	var matches []string
+
+	if dockerConfig.DockerComposeFilePaths == nil || len(dockerConfig.DockerComposeFilePaths) == 0 {
+		return nil, nil
+	} else {
+		for _, i := range dockerConfig.DockerComposeFilePaths {
+
+			// List the files in the given source directory
+			files, err := d.GetSourceFiles(i)
+			if err != nil {
+				return nil, err
+			}
+			plugin.Logger(ctx).Warn("getParsedComposeDataUncached", "source", i, "files", files)
+			matches = append(matches, files...)
+		}
+	}
+
+	if len(matches) == 0 {
+		return nil, errors.New("docker_compose_file_paths must be configured")
+	}
+
+	var parsedComposeContent []map[string]interface{}
+
+	// fetch compose data from the files
+	for _, composeFilePath := range matches {
+
+		// docker compose config renders the actual data model to be applied on the Docker engine. It merges the Compose files set by -f flags, resolves variables in the Compose file, and expands short-notation into the canonical format.
+		cmd := exec.Command("docker-compose", "-f", composeFilePath, "config")
+
+		// Redirect the command output to a buffer
+		var stdout bytes.Buffer
+		cmd.Stdout = &stdout
+
+		// Run the command
+		err := cmd.Run()
+		if err != nil {
+			plugin.Logger(ctx).Error("getParsedComposeDataUncached", "cmd_error", err)
+			return nil, err
+		}
+
+		parsedCompose, err := loader.ParseYAML(stdout.Bytes())
+		if err != nil {
+			plugin.Logger(ctx).Error("getParsedComposeDataUncached", "parse_error", err)
+			return nil, err
+		}
+		parsedComposeContent = append(parsedComposeContent, parsedCompose)
+	}
+
+	return parsedComposeContent, nil
 }
