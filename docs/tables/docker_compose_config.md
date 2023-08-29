@@ -1,6 +1,6 @@
 # Table: docker_compose_config
 
-List all networks from the Docker compose files.
+List all configs from the Docker compose files.
 
 ## Examples
 
@@ -17,7 +17,7 @@ from
   docker_compose_config;
 ```
 
-### List configs external configuration
+### List the external configuration of configs
 
 ```sql
 select

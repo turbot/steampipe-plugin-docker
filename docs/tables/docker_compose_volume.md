@@ -16,7 +16,7 @@ from
   docker_compose_volume;
 ```
 
-### List volumes external configuration
+### List the external configuration of volumes
 
 ```sql
 select

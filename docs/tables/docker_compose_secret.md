@@ -17,7 +17,7 @@ from
   docker_compose_secret;
 ```
 
-### List secrets external configuration
+### List the external configuration of secrets
 
 ```sql
 select

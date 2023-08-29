@@ -116,6 +116,7 @@ connection "docker" {
 - `api_version` - API version to use. Defaults to `DOCKER_API_VERSION` env var.
 - `cert_path` - Path to a custom TLS certificate. Defaults to `DOCKER_CERT_PATH` env var.
 - `tls_verify` - Flag to control TLS verification. Defaults to `DOCKER_TLS_VERIFY` env var.
+- `docker_compose_file_paths` - Path to docker compose files. This argument should be set when trying to query `docker_compose_*` tables.
 
 ### Supported Path Formats
 

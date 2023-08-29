@@ -51,7 +51,7 @@ where
   cgroup_parent is null;
 ```
 
-### List services which do not have health check configuration
+### List services that do not have health check configured
 
 ```sql
 select
@@ -67,7 +67,7 @@ where
   health_check is null;
 ```
 
-### List services which do not have logging configuration
+### List services that do not have logging configured
 
 ```sql
 select
@@ -99,7 +99,7 @@ where
   privileged;
 ```
 
-### List services with read_only mode enabled for containers
+### List services with READ ONLY mode enabled for containers
 
 ```sql
 select
