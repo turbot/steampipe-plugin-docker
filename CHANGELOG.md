@@ -1,3 +1,19 @@
+## v0.8.0 [2023-08-29]
+
+_What's new?_
+
+- New tables added
+  - [docker_compose_config](https://hub.steampipe.io/plugins/turbot/docker/tables/docker_compose_config)
+  - [docker_compose_network](https://hub.steampipe.io/plugins/turbot/docker/tables/docker_compose_network)
+  - [docker_compose_secret](https://hub.steampipe.io/plugins/turbot/docker/tables/docker_compose_secret)
+  - [docker_compose_service](https://hub.steampipe.io/plugins/turbot/docker/tables/docker_compose_service)
+  - [docker_compose_volume](https://hub.steampipe.io/plugins/turbot/docker/tables/docker_compose_volume)
+- Added support to query Docker compose files. This can be set using the `docker_compose_file_paths` config argument in the `docker.spc` file.  ([#30](https://github.com/turbot/steampipe-plugin-docker/pull/30))
+
+_Deprecated_
+
+- The `paths` config argument has been deprecated and will be removed in a future release, please use `dockerfile_paths` instead. ([#30](https://github.com/turbot/steampipe-plugin-docker/pull/30))
+
 ## v0.7.0 [2023-08-02]
 
 _Enhancements_
