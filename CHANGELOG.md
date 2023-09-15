@@ -1,3 +1,14 @@
+## v0.9.0 [2023-09-15]
+
+_Bug fixes_
+
+- Fixed the plugin to return `nil` instead of an `error` when the file/path specified in `dockerfile_paths` or `docker_compose_file_paths` config arguments does not exist. ([#38](https://github.com/turbot/steampipe-plugin-docker/pull/38))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.5.1](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v551-2023-07-26). ([#34](https://github.com/turbot/steampipe-plugin-docker/pull/34))
+- Recompiled plugin with `github.com/turbot/go-kit v0.7.0`.
+
 ## v0.8.0 [2023-08-29]
 
 _What's new?_
