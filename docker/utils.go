@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/compose-spec/compose-go/loader"
@@ -99,6 +100,12 @@ func getParsedComposeDataUncached(ctx context.Context, d *plugin.QueryData, _ *p
 			// List the files in the given source directory
 			files, err := d.GetSourceFiles(i)
 			if err != nil {
+				plugin.Logger(ctx).Error("getParsedComposeDataUncached.DockerComposeFilePaths", "get_source_files_error", err)
+
+				// If the specified path is unavailable, then an empty row should populate
+				if strings.Contains(err.Error(), "failed to get directory specified by the source") {
+					return nil, nil
+				}
 				return nil, err
 			}
 			plugin.Logger(ctx).Warn("getParsedComposeDataUncached", "source", i, "files", files)
