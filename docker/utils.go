@@ -29,14 +29,6 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	// process.
 	dockerConfig := GetConfig(d.Connection)
 
-	// if dockerConfig.TLSVerify != nil {
-	// 	if *dockerConfig.TLSVerify {
-	// 		os.Setenv("DOCKER_TLS_VERIFY", "1")
-	// 	} else {
-	// 		os.Setenv("DOCKER_TLS_VERIFY", "0")
-	// 	}
-	// }
-
 	clientOpts := []client.Opt{}
 
 	if dockerConfig.Host != nil {
@@ -48,8 +40,6 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	}
 
 	if dockerConfig.CertPath != nil {
-		// TODO it seems InsecureSkipVerify is set to true when CertPath is set
-		// InsecureSkipVerify: *dockerConfig.TLSVerify,
 		clientOpts = append(clientOpts, client.WithTLSClientConfig(
 			filepath.Join(*dockerConfig.CertPath, "ca.pem"),
 			filepath.Join(*dockerConfig.CertPath, "cert.pem"),
