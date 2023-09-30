@@ -3,8 +3,8 @@ package docker
 import (
 	"bytes"
 	"context"
-	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -28,25 +28,36 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	// is given in the steampipe configuration file, then set the env locally for the
 	// process.
 	dockerConfig := GetConfig(d.Connection)
+
+	// if dockerConfig.TLSVerify != nil {
+	// 	if *dockerConfig.TLSVerify {
+	// 		os.Setenv("DOCKER_TLS_VERIFY", "1")
+	// 	} else {
+	// 		os.Setenv("DOCKER_TLS_VERIFY", "0")
+	// 	}
+	// }
+
+	clientOpts := []client.Opt{}
+
 	if dockerConfig.Host != nil {
-		os.Setenv("DOCKER_HOST", *dockerConfig.Host)
-	}
-	if dockerConfig.APIVersion != nil {
-		os.Setenv("DOCKER_API_VERSION", *dockerConfig.APIVersion)
-	}
-	if dockerConfig.CertPath != nil {
-		os.Setenv("DOCKER_CERT_PATH", *dockerConfig.CertPath)
-	}
-	if dockerConfig.TLSVerify != nil {
-		if *dockerConfig.TLSVerify {
-			os.Setenv("DOCKER_TLS_VERIFY", "1")
-		} else {
-			os.Setenv("DOCKER_TLS_VERIFY", "0")
-		}
+		clientOpts = append(clientOpts, client.WithHost(*dockerConfig.Host))
 	}
 
-	// Always load the docker config from ENV vars
-	conn, err := client.NewClientWithOpts(client.FromEnv)
+	if dockerConfig.APIVersion != nil {
+		clientOpts = append(clientOpts, client.WithVersion(*dockerConfig.APIVersion))
+	}
+
+	if dockerConfig.CertPath != nil {
+		// TODO it seems InsecureSkipVerify is set to true when CertPath is set
+		// InsecureSkipVerify: *dockerConfig.TLSVerify,
+		clientOpts = append(clientOpts, client.WithTLSClientConfig(
+			filepath.Join(*dockerConfig.CertPath, "ca.pem"),
+			filepath.Join(*dockerConfig.CertPath, "cert.pem"),
+			filepath.Join(*dockerConfig.CertPath, "key.pem"),
+		))
+	}
+
+	conn, err := client.NewClientWithOpts(clientOpts...)
 	if err != nil {
 		return nil, err
 	}
