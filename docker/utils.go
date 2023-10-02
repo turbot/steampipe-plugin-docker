@@ -3,6 +3,7 @@ package docker
 import (
 	"bytes"
 	"context"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -31,21 +32,34 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 
 	clientOpts := []client.Opt{}
 
+	host := os.Getenv("DOCKER_HOST")
 	if dockerConfig.Host != nil {
-		clientOpts = append(clientOpts, client.WithHost(*dockerConfig.Host))
+		host = *dockerConfig.Host
 	}
+	clientOpts = append(clientOpts, client.WithHost(host))
 
+	apiVersion := os.Getenv("DOCKER_API_VERSION")
 	if dockerConfig.APIVersion != nil {
-		clientOpts = append(clientOpts, client.WithVersion(*dockerConfig.APIVersion))
+		apiVersion = *dockerConfig.APIVersion
+	}
+	clientOpts = append(clientOpts, client.WithVersion(apiVersion))
+
+	certPath := os.Getenv("DOCKER_CERT_PATH")
+	if dockerConfig.CertPath != nil {
+		certPath = *dockerConfig.CertPath
 	}
 
-	if dockerConfig.CertPath != nil {
-		clientOpts = append(clientOpts, client.WithTLSClientConfig(
-			filepath.Join(*dockerConfig.CertPath, "ca.pem"),
-			filepath.Join(*dockerConfig.CertPath, "cert.pem"),
-			filepath.Join(*dockerConfig.CertPath, "key.pem"),
-		))
+	// TODO: Can we use set this with options?
+	tlsVerify := strings.ToLower(os.Getenv("DOCKER_TLS_VERIFY")) == "true"
+	if dockerConfig.TLSVerify != nil {
+		tlsVerify = *dockerConfig.TLSVerify
 	}
+
+	clientOpts = append(clientOpts, client.WithTLSClientConfig(
+		filepath.Join(certPath, "ca.pem"),
+		filepath.Join(certPath, "cert.pem"),
+		filepath.Join(certPath, "key.pem"),
+	))
 
 	conn, err := client.NewClientWithOpts(clientOpts...)
 	if err != nil {

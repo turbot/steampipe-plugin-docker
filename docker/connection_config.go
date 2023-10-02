@@ -12,6 +12,7 @@ type dockerConfig struct {
 	Host                   *string  `cty:"host"`
 	APIVersion             *string  `cty:"api_version"`
 	CertPath               *string  `cty:"cert_path"`
+	TLSVerify              *bool    `cty:"tls_verify"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -35,6 +36,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"cert_path": {
 		Type: schema.TypeString,
+	},
+	"tls_verify": {
+		Type: schema.TypeBool,
 	},
 }
 
