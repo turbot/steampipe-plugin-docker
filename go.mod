@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/compose-spec/compose-go v1.17.0
-	github.com/docker/docker v20.10.7+incompatible
+	github.com/docker/docker v24.0.6+incompatible
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1
 	github.com/turbot/go-kit v0.8.0-rc.0
@@ -30,7 +30,6 @@ require (
 	github.com/btubbs/datetime v0.1.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/containerd/containerd v1.4.1-0.20201117152358-0edc412565dc // indirect
 	github.com/containerd/typeurl v1.0.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
