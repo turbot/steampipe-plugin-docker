@@ -49,7 +49,6 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 		certPath = *dockerConfig.CertPath
 	}
 
-	// TODO: Can we use set this with options?
 	tlsVerify := strings.ToLower(os.Getenv("DOCKER_TLS_VERIFY")) == "true"
 	if dockerConfig.TLSVerify != nil {
 		tlsVerify = *dockerConfig.TLSVerify
@@ -59,6 +58,7 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 		filepath.Join(certPath, "ca.pem"),
 		filepath.Join(certPath, "cert.pem"),
 		filepath.Join(certPath, "key.pem"),
+		tlsVerify,
 	))
 
 	conn, err := client.NewClientWithOpts(clientOpts...)
