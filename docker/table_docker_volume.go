@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/volume"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -40,7 +41,7 @@ func listVolume(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		return nil, err
 	}
 	params := filters.Args{}
-	result, err := conn.VolumeList(ctx, params)
+	result, err := conn.VolumeList(ctx, volume.ListOptions{Filters: params})
 	if err != nil {
 		plugin.Logger(ctx).Error("docker_volume.listVolume", "query_error", err, "params", params)
 		return nil, err
