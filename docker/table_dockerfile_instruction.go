@@ -244,8 +244,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.ArgCommand:
@@ -267,8 +267,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.EntrypointCommand:
