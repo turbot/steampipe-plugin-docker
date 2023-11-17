@@ -54,12 +54,18 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 		tlsVerify = *dockerConfig.TLSVerify
 	}
 
-	clientOpts = append(clientOpts, client.WithTLSClientConfig(
-		filepath.Join(certPath, "ca.pem"),
-		filepath.Join(certPath, "cert.pem"),
-		filepath.Join(certPath, "key.pem"),
-		tlsVerify,
-	))
+	if tlsVerify {
+		clientOpts = append(clientOpts, client.WithTLSClientConfig(
+			filepath.Join(certPath, "ca.pem"),
+			filepath.Join(certPath, "cert.pem"),
+			filepath.Join(certPath, "key.pem"),
+		))
+	} else {
+		clientOpts = append(clientOpts, client.WithInsecureSkipVerifyTLSClientConfig(
+			filepath.Join(certPath, "cert.pem"),
+			filepath.Join(certPath, "key.pem"),
+		))
+	}
 
 	conn, err := client.NewClientWithOpts(clientOpts...)
 	if err != nil {
