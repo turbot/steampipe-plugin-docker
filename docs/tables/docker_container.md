@@ -1,10 +1,20 @@
-# Table: docker_container
+---
+title: "Steampipe Table: docker_container - Query Docker Containers using SQL"
+description: "Allows users to query Docker Containers, specifically the container's ID, image, command, created time, status, and more, providing insights into container configurations and status."
+---
 
-List containers from the docker engine.
+# Table: docker_container - Query Docker Containers using SQL
+
+Docker Containers are a standard unit of software that packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another. With Docker, you can manage your infrastructure in the same ways you manage your applications. It provides a consistent and reproducible environment isolated from other applications.
+
+## Table Usage Guide
+
+The `docker_container` table provides insights into Docker Containers within Docker. As a DevOps engineer, explore container-specific details through this table, including the container's ID, image, command, created time, status, and more. Utilize it to uncover information about containers, such as those with specific configurations, the status of the containers, and the verification of container isolation.
 
 ## Examples
 
 ### List all containers
+Explore all active containers in your Docker environment to manage and monitor your applications more effectively. This helps in identifying potential issues and understanding the overall status of your applications.
 
 ```sql
 select
@@ -14,6 +24,7 @@ from
 ```
 
 ### List running containers
+Discover the segments that are actively running within your Docker environment. This can help you manage resources and troubleshoot issues more effectively.
 
 ```sql
 select
@@ -26,6 +37,7 @@ where
 ```
 
 ### Find a container by name
+Discover the segments that correspond to a specific container name within your Docker environment. This allows you to quickly locate and analyze the details of a particular container, enhancing your overall management and oversight of your Docker resources.
 
 ```sql
 select
@@ -37,6 +49,7 @@ where
 ```
 
 ### List containers which do not have a health check configured
+Identify instances where Docker containers may lack a health check configuration. This is useful to ensure all containers are functioning correctly and to maintain optimal system health.
 
 ```sql
 select
@@ -52,6 +65,7 @@ where
 ```
 
 ### List containers with host network namespace shared
+Explore which Docker containers share the host's network namespace. This is useful for understanding potential security risks, as such containers have access to all network interfaces and services running on the host machine.
 
 ```sql
 select
