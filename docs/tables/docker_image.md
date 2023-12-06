@@ -16,21 +16,32 @@ The `docker_image` table provides insights into Docker Images within the Docker 
 ### List all images
 Explore all available images within your Docker system using this query. It's useful for quickly assessing the overall state of your Docker images, helping you manage resources and plan for future needs.
 
-```sql
+```sql+postgres
 select
   *
 from
-  docker_image
+  docker_image;
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_image;
 ```
 
 ### Find an image by tag
 Explore which Docker images are associated with a specific tag, such as 'postgres:latest'. This can be useful in managing and organizing your Docker images based on their tags.
 
-```sql
+```sql+postgres
 select
   *
 from
   docker_image
 where
   repo_tags ? 'postgres:latest'
+```
+
+```sql+sqlite
+Error: SQLite does not support the '?' operator for checking the existence of a key in a JSON object.
 ```

@@ -18,7 +18,7 @@ Explore the sequence of instructions within a specific Dockerfile to better unde
 Set the `path` column to query a specific Dockerfile. A full path must be provided.
 
 
-```sql
+```sql+postgres
 select
   *
 from
@@ -26,31 +26,52 @@ from
 where
   path = '/full/path/to/Dockerfile'
 order by
-  start_line
+  start_line;
+```
+
+```sql+sqlite
+select
+  *
+from
+  dockerfile_instruction
+where
+  path = '/full/path/to/Dockerfile'
+order by
+  start_line;
 ```
 
 ### List all Dockerfiles matched in the paths config
 Explore all Dockerfile instructions sorted by their respective paths and starting lines. This can help you understand the structure and organization of your Dockerfiles, making it easier to manage and troubleshoot your Docker environment.
+
 The `paths` config parameter sets directories (including wildcards) to search
 for Dockerfiles. To match, either the filename is `Dockerfile` (e.g.
 `Dockerfile`, `Dockerfile.example`), or the extension is `.dockerfile` (e.g.
 `nginx.dockerfile`).
 
-
-```sql
+```sql+postgres
 select
   *
 from
   dockerfile_instruction
 order by
   path,
-  start_line
+  start_line;
+```
+
+```sql+sqlite
+select
+  *
+from
+  dockerfile_instruction
+order by
+  path,
+  start_line;
 ```
 
 ### List base images
 Explore the foundational elements of your Docker environment by identifying the base images used in your Dockerfiles. This can aid in understanding dependencies, ensuring consistency, and managing potential security vulnerabilities across your projects.
 
-```sql
+```sql+postgres
 select
   path,
   start_line,
@@ -64,13 +85,30 @@ order by
   path,
   start_line,
   image,
-  tag
+  tag;
+```
+
+```sql+sqlite
+select
+  path,
+  start_line,
+  json_extract(data, '$.image') as image,
+  json_extract(data, '$.tag') as tag
+from
+  dockerfile_instruction as cmd
+where
+  cmd.cmd = 'from'
+order by
+  path,
+  start_line,
+  image,
+  tag;
 ```
 
 ### Find all exposed ports
 Identify instances where certain ports are exposed in your Dockerfile instructions. This can help you manage and secure your network traffic by understanding which ports are open.
 
-```sql
+```sql+postgres
 select
   path,
   start_line,
@@ -85,5 +123,23 @@ order by
   path,
   start_line,
   port,
-  protocol
+  protocol;
+```
+
+```sql+sqlite
+select
+  path,
+  start_line,
+  cast(json_extract(p.value, '$.port') as integer) as port,
+  json_extract(p.value, '$.protocol') as protocol
+from
+  dockerfile_instruction as cmd,
+  json_each(cmd.data) as p
+where
+  cmd.cmd = 'expose'
+order by
+  path,
+  start_line,
+  port,
+  protocol;
 ```

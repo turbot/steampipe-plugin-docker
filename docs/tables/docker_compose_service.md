@@ -16,7 +16,19 @@ The `docker_compose_service` table provides insights into Docker Compose Service
 ### Basic info
 Discover the segments that are using the maximum CPU resources in your Docker Compose service. This allows for efficient resource management and aids in identifying potential bottlenecks.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service;
+```
+
+```sql+sqlite
 select
   name,
   attach,
@@ -31,7 +43,22 @@ from
 ### List CPU configurations of the services
 Explore the CPU setup of your services to understand how they are configured and assess whether any adjustments are needed to optimize performance. This can provide valuable insights into potential bottlenecks and areas for improvement in your system.
 
-```sql
+```sql+postgres
+select
+  name,
+  cpu_count,
+  cpu_percent,
+  cpu_period,
+  cpu_quota,
+  cpu_rt_period,
+  cpu_rt_runtime,
+  cpus,
+  cpu_shares
+from
+  docker_compose_service;
+```
+
+```sql+sqlite
 select
   name,
   cpu_count,
@@ -49,7 +76,21 @@ from
 ### List services running under default cgroup
 Determine the areas in which Docker services are running under the default cgroup. This is useful for understanding resource allocation and identifying potential areas of optimization.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  cgroup_parent is null;
+```
+
+```sql+sqlite
 select
   name,
   attach,
@@ -66,7 +107,21 @@ where
 ### List services that do not have health check configured
 Analyze the settings to understand which services are potentially vulnerable due to the absence of a configured health check. This can help in identifying areas that require immediate attention to ensure optimal system health and performance.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  health_check is null;
+```
+
+```sql+sqlite
 select
   name,
   attach,
@@ -83,7 +138,21 @@ where
 ### List services that do not have logging configured
 Discover the segments that lack logging configurations to enhance system transparency and troubleshooting capabilities. This is beneficial in pinpointing areas for potential system improvement and ensuring optimal performance.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  logging is null;
+```
+
+```sql+sqlite
 select
   name,
   attach,
@@ -100,7 +169,7 @@ where
 ### List services with privileged mode enabled for containers
 Identify instances where services are running in privileged mode within Docker containers. This enables a comprehensive review of security practices, as running containers in privileged mode may expose them to potential risks.
 
-```sql
+```sql+postgres
 select
   name,
   attach,
@@ -114,10 +183,38 @@ where
   privileged;
 ```
 
+```sql+sqlite
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  privileged = 1;
+```
+
 ### List services with READ ONLY mode enabled for containers
 Explore services that have the READ ONLY mode enabled in their container settings. This can be useful to identify potential security measures or limitations within your Docker Compose services.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  read_only;
+```
+
+```sql+sqlite
 select
   name,
   attach,
@@ -134,7 +231,21 @@ where
 ### List services where user namespace is unused for containers
 Discover the segments that consist of services where the user namespace remains unused for containers. This can be beneficial in identifying potential areas for optimization or troubleshooting in your Docker environment.
 
-```sql
+```sql+postgres
+select
+  name,
+  attach,
+  cgroup_parent,
+  cpu_count,
+  cpu_percent,
+  cpus
+from
+  docker_compose_service
+where
+  user_ns_mode is null;
+```
+
+```sql+sqlite
 select
   name,
   attach,

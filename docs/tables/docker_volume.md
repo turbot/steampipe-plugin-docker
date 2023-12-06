@@ -16,21 +16,37 @@ The `docker_volume` table provides insights into Docker Volumes within Docker. A
 ### List all volumes
 Explore all the storage volumes within your Docker environment to understand the usage and allocation. This can be beneficial for managing storage resources and optimizing performance.
 
-```sql
+```sql+postgres
 select
   *
 from
-  docker_volume
+  docker_volume;
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_volume;
 ```
 
 ### Find all volumes with a given label
 Identify all Docker volumes that are labeled as 'postgres'. This is useful for managing and organizing your Docker volumes, especially in large systems where volumes may not be consistently labeled.
 
-```sql
+```sql+postgres
 select
   *
 from
   docker_volume
 where
-  labels ->> 'com.docker.compose.volume' = 'postgres'
+  labels ->> 'com.docker.compose.volume' = 'postgres';
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_volume
+where
+  json_extract(labels, '$.com.docker.compose.volume') = 'postgres';
 ```

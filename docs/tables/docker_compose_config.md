@@ -16,7 +16,18 @@ The `docker_compose_config` table provides insights into Docker Compose configur
 ### Basic info
 Explore the fundamental details of a Docker Compose configuration to understand its environment, associated files, and the drivers in use. This can help in managing and debugging your Docker Compose setup effectively.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  environment,
+  driver,
+  template_driver
+from
+  docker_compose_config;
+```
+
+```sql+sqlite
 select
   name,
   file,
@@ -30,7 +41,7 @@ from
 ### List the external configuration of configs
 Explore the external settings of your configurations to understand how they interact with external systems or resources. This can be particularly useful when troubleshooting or optimizing your system's interaction with external elements.
 
-```sql
+```sql+postgres
 select
   name,
   file,
@@ -42,10 +53,35 @@ from
   docker_compose_config;
 ```
 
+```sql+sqlite
+select
+  name,
+  file,
+  driver,
+  json_extract(external, '$.Name') as external_name,
+  json_extract(external, '$.External') as external,
+  external as external_extensions
+from
+  docker_compose_config;
+```
+
 ### List configs with local driver
 Explore which configurations within your Docker Compose setup are utilizing a local driver. This can be beneficial for assessing elements within your system that may be operating independently of network drivers, aiding in system management and optimization.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  environment,
+  driver,
+  template_driver
+from
+  docker_compose_config
+where
+  driver = 'local';
+```
+
+```sql+sqlite
 select
   name,
   file,
@@ -61,7 +97,19 @@ where
 ### List configs without environment vars
 Explore configurations that lack environment variables. This is useful for identifying potential areas in your Docker Compose setup that may need additional context or settings.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  driver,
+  template_driver
+from
+  docker_compose_config
+where
+  environment is null;
+```
+
+```sql+sqlite
 select
   name,
   file,

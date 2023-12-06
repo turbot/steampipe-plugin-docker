@@ -16,7 +16,7 @@ The `docker_compose_volume` table provides insights into Docker Compose Volumes.
 ### Basic info
 Explore which Docker Compose volumes are in use and determine their associated drivers. This can help identify instances where specific drivers or volumes may be causing issues, allowing for targeted troubleshooting and optimization.
 
-```sql
+```sql+postgres
 select
   name,
   driver,
@@ -26,10 +26,20 @@ from
   docker_compose_volume;
 ```
 
+```sql+sqlite
+select
+  name,
+  driver,
+  driver_opts,
+  external
+from
+  docker_compose_volume;
+```
+
 ### List the external configuration of volumes
 Explore the external setup of your storage spaces to understand how they are configured and managed. This is beneficial for reviewing and optimizing your storage utilization strategy.
 
-```sql
+```sql+postgres
 select
   name,
   driver,
@@ -40,15 +50,38 @@ from
   docker_compose_volume;
 ```
 
+```sql+sqlite
+select
+  name,
+  driver,
+  json_extract(external, '$.Name') as external_name,
+  json_extract(external, '$.External') as external,
+  external as external_extensions
+from
+  docker_compose_volume;
+```
+
 ### List volumes with local driver
 Explore which Docker volumes are using the local driver. This can be used to assess the configuration for potential storage optimizations or to identify instances where a different driver might be more appropriate.
 
-```sql
+```sql+postgres
 select
   name,
   driver,
   jsonb_pretty(driver_opts) as driver_opts,
   jsonb_pretty(external) as external
+from
+  docker_compose_volume
+where
+  driver = 'local';
+```
+
+```sql+sqlite
+select
+  name,
+  driver,
+  driver_opts,
+  external
 from
   docker_compose_volume
 where

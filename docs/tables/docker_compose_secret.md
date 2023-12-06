@@ -16,7 +16,18 @@ The `docker_compose_secret` table provides insights into the secrets used in a D
 ### Basic info
 Explore which Docker Compose secrets are being used in your environment. This can help you manage and understand the configuration of your secrets, providing insights into your Docker Compose setup.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  environment,
+  driver,
+  template_driver
+from
+  docker_compose_secret;
+```
+
+```sql+sqlite
 select
   name,
   file,
@@ -30,7 +41,7 @@ from
 ### List the external configuration of secrets
 Explore the external configuration of secrets in your Docker Compose setup to understand how they are managed and where they are stored. This is beneficial for assessing security measures and ensuring best practices are in place.
 
-```sql
+```sql+postgres
 select
   name,
   file,
@@ -42,10 +53,35 @@ from
   docker_compose_secret;
 ```
 
+```sql+sqlite
+select
+  name,
+  file,
+  driver,
+  json_extract(external, '$.Name') as external_name,
+  json_extract(external, '$.External') as external,
+  external as external_extensions
+from
+  docker_compose_secret;
+```
+
 ### List secrets with local driver
 Discover the segments that utilize the local driver within the Docker Compose Secret. This is particularly beneficial to identify and manage secrets that are locally stored, aiding in security and configuration management.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  environment,
+  driver,
+  template_driver
+from
+  docker_compose_secret
+where
+  driver = 'local';
+```
+
+```sql+sqlite
 select
   name,
   file,
@@ -61,7 +97,19 @@ where
 ### List secrets without environment vars
 Determine the areas in which Docker Compose secrets are not associated with any environment variables. This can be useful to identify potential misconfigurations or security risks within your Docker setup.
 
-```sql
+```sql+postgres
+select
+  name,
+  file,
+  driver,
+  template_driver
+from
+  docker_compose_secret
+where
+  environment is null;
+```
+
+```sql+sqlite
 select
   name,
   file,

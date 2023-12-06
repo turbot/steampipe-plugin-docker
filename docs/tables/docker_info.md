@@ -16,9 +16,16 @@ The `docker_info` table provides insights into the Docker engine running on the 
 ### Get info
 Explore the comprehensive details of your Docker environment to better understand its current state and configuration. This can aid in troubleshooting, optimizing resource usage, and enhancing your overall Docker management strategy.
 
-```sql
+```sql+postgres
 select
   *
 from
-  docker_info
+  docker_info;
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_info;
 ```

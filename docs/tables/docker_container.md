@@ -16,42 +16,63 @@ The `docker_container` table provides insights into Docker Containers within Doc
 ### List all containers
 Explore all active containers in your Docker environment to manage and monitor your applications more effectively. This helps in identifying potential issues and understanding the overall status of your applications.
 
-```sql
+```sql+postgres
 select
   *
 from
-  docker_container
+  docker_container;
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_container;
 ```
 
 ### List running containers
 Discover the segments that are actively running within your Docker environment. This can help you manage resources and troubleshoot issues more effectively.
 
-```sql
+```sql+postgres
 select
   id,
   names
 from
   docker_container
 where
-  state = 'running'
+  state = 'running';
+```
+
+```sql+sqlite
+select
+  id,
+  names
+from
+  docker_container
+where
+  state = 'running';
 ```
 
 ### Find a container by name
 Discover the segments that correspond to a specific container name within your Docker environment. This allows you to quickly locate and analyze the details of a particular container, enhancing your overall management and oversight of your Docker resources.
 
-```sql
+```sql+postgres
 select
   *
 from
   docker_container
 where
-  names ? '/practical_austin'
+  names ? '/practical_austin';
+```
+
+```sql+sqlite
+Error: SQLite does not support the '?' operator for JSON objects.
 ```
 
 ### List containers which do not have a health check configured
 Identify instances where Docker containers may lack a health check configuration. This is useful to ensure all containers are functioning correctly and to maintain optimal system health.
 
-```sql
+```sql+postgres
 select
   id,
   names,
@@ -64,10 +85,23 @@ where
   config -> 'Healthcheck' is null;
 ```
 
+```sql+sqlite
+select
+  id,
+  names,
+  image,
+  command,
+  created
+from
+  docker_container
+where
+  json_extract(config, '$.Healthcheck') is null;
+```
+
 ### List containers with host network namespace shared
 Explore which Docker containers share the host's network namespace. This is useful for understanding potential security risks, as such containers have access to all network interfaces and services running on the host machine.
 
-```sql
+```sql+postgres
 select
   id,
   names,
@@ -78,4 +112,17 @@ from
   docker_container
 where
   inspect -> 'HostConfig' ->> 'NetworkMode' = 'host';
+```
+
+```sql+sqlite
+select
+  id,
+  names,
+  image,
+  command,
+  created
+from
+  docker_container
+where
+  json_extract(inspect, '$.HostConfig.NetworkMode') = 'host';
 ```

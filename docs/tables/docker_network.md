@@ -16,9 +16,16 @@ The `docker_network` table offers insights into Docker Networks. Network adminis
 ### List all networks
 Explore all the networks within your Docker environment. This can help in understanding the connectivity and isolation of your containers, aiding in better network management and security.
 
-```sql
+```sql+postgres
 select
   *
 from
-  docker_network
+  docker_network;
+```
+
+```sql+sqlite
+select
+  *
+from
+  docker_network;
 ```
