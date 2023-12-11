@@ -8,6 +8,7 @@ short_name: "docker"
 description: "Steampipe plugin to query Dockerfile commands and more from Docker."
 og_description: "Query Docker with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/docker-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # Docker + Steampipe
