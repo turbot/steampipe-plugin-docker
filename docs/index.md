@@ -8,13 +8,14 @@ short_name: "docker"
 description: "Steampipe plugin to query Dockerfile commands and more from Docker."
 og_description: "Query Docker with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/docker-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # Docker + Steampipe
 
 [Docker](https://docker.com) provides OS-level virtualization to deliver software in packages called containers.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
 Query commands from a Dockerfile:
 
@@ -324,7 +325,4 @@ connection "docker" {
 }
 ```
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-docker
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)
