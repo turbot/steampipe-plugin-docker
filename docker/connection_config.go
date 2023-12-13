@@ -5,9 +5,9 @@ import (
 )
 
 type dockerConfig struct {
-	Paths                  []string `hcl:"paths" steampipe:"watch"`
-	DockerfilePaths        []string `hcl:"dockerfile_paths" steampipe:"watch"`
-	DockerComposeFilePaths []string `hcl:"docker_compose_file_paths" steampipe:"watch"`
+	Paths                  []string `hcl:"paths,optional" steampipe:"watch"`
+	DockerfilePaths        []string `hcl:"dockerfile_paths,optional" steampipe:"watch"`
+	DockerComposeFilePaths []string `hcl:"docker_compose_file_paths,optional" steampipe:"watch"`
 	Host                   *string  `hcl:"host"`
 	APIVersion             *string  `hcl:"api_version"`
 	CertPath               *string  `hcl:"cert_path"`
