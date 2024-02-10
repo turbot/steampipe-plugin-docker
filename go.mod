@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-docker
 go 1.21
 
 require (
-	github.com/compose-spec/compose-go v1.17.0
+	github.com/compose-spec/compose-go v1.20.2
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/moby/buildkit v0.8.3
 	github.com/pkg/errors v0.9.1
@@ -32,7 +32,7 @@ require (
 	github.com/containerd/typeurl v1.0.1 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/distribution/distribution/v3 v3.0.0-20230214150026-36d8c594d7aa // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
