@@ -145,13 +145,11 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		dPath = append(dPath, dockerConfig.DockerfilePaths...)
 	}
 	for _, i := range dPath {
-
 		// List the files in the given source directory
 		files, err := d.GetSourceFiles(i)
 		if err != nil {
-			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "get_source_files_error", err)
-
 			// If the specified path is unavailable, then an empty row should populate
+			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "get_source_files_error", err)
 			if strings.Contains(err.Error(), "failed to get directory specified by the source") {
 				return nil, nil
 			}
@@ -175,7 +173,6 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
 	// The path comes from a parent hydrate, defaulting to the config paths or
 	// available by the optional key column
 	path := h.Item.(filePath)
@@ -189,7 +186,7 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 
 	parsed, err := parser.Parse(reader)
 	if err != nil {
-		// Could not open the file, so log and ignore
+		// Could not parse the file, so log and ignore
 		plugin.Logger(ctx).Error("listDockerfileInstruction", "parse_error", err, "path", path.Path)
 		return nil, nil
 	}
@@ -198,7 +195,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 	stageNumber := -1
 
 	for _, i := range parsed.AST.Children {
-
 		cmd := Command{
 			Path:        path.Path,
 			Instruction: i.Value,
@@ -244,8 +240,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.ArgCommand:
@@ -267,8 +263,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.EntrypointCommand:
@@ -288,7 +284,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 				parts := strings.Split(p, "/")
 				iPort, err := strconv.Atoi(parts[0])
 				if err != nil {
-					// Log and ignore errors
 					plugin.Logger(ctx).Error("listDockerfileInstruction", "expose_data_parsing_error", err, "cmd", cmd)
 					continue
 				}
