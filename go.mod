@@ -6,7 +6,7 @@ toolchain go1.21.4
 
 require (
 	github.com/compose-spec/compose-go v1.17.0
-	github.com/docker/docker v24.0.0-rc.2.0.20230718135204-8e51b8b59cb8+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/moby/buildkit v0.12.5
 	github.com/pkg/errors v0.9.1
 	github.com/turbot/go-kit v0.10.0-rc.0
