@@ -46,7 +46,6 @@ func tableDockerfileInstruction(ctx context.Context) *plugin.Table {
 	}
 }
 
-// Command is the struct for each dockerfile command
 type Command struct {
 	Path           string
 	Stage          string
@@ -113,21 +112,12 @@ type workdirInstructionData struct {
 }
 
 func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-
-	// #1 - Path via qual
-
-	// If the path was requested through qualifier then match it exactly. Globs
-	// are not supported in this context since the output value for the column
-	// will never match the requested value.
 	quals := d.EqualsQuals
 	if quals["path"] != nil {
 		d.StreamListItem(ctx, filePath{Path: quals["path"].GetStringValue()})
 		return nil, nil
 	}
 
-	// #2 - Glob paths in config
-
-	// Fail if no paths are specified
 	dockerConfig := GetConfig(d.Connection)
 
 	plugin.Logger(ctx).Warn("paths parameter is deprecated and will be removed after 31st August 2023, please use dockerfile_paths instead.")
@@ -135,7 +125,6 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, errors.New("dockerfile_paths must be configured")
 	}
 
-	// Gather file path matches for the glob
 	var matches []string
 	var dPath []string
 
@@ -145,13 +134,9 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		dPath = append(dPath, dockerConfig.DockerfilePaths...)
 	}
 	for _, i := range dPath {
-
-		// List the files in the given source directory
 		files, err := d.GetSourceFiles(i)
 		if err != nil {
 			plugin.Logger(ctx).Error("dockerfile_instruction.dockerfileList", "get_source_files_error", err)
-
-			// If the specified path is unavailable, then an empty row should populate
 			if strings.Contains(err.Error(), "failed to get directory specified by the source") {
 				return nil, nil
 			}
@@ -161,10 +146,7 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		matches = append(matches, files...)
 	}
 
-	// Sanitize the matches to ignore the directories
 	for _, i := range matches {
-
-		// Ignore directories
 		if filehelpers.DirectoryExists(i) {
 			continue
 		}
@@ -175,21 +157,16 @@ func dockerfileList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 }
 
 func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	// The path comes from a parent hydrate, defaulting to the config paths or
-	// available by the optional key column
 	path := h.Item.(filePath)
 
 	reader, err := os.Open(path.Path)
 	if err != nil {
-		// Could not open the file, so log and ignore
 		plugin.Logger(ctx).Error("listDockerfileInstruction", "file_error", err, "path", path.Path)
 		return nil, nil
 	}
 
 	parsed, err := parser.Parse(reader)
 	if err != nil {
-		// Could not open the file, so log and ignore
 		plugin.Logger(ctx).Error("listDockerfileInstruction", "parse_error", err, "path", path.Path)
 		return nil, nil
 	}
@@ -198,7 +175,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 	stageNumber := -1
 
 	for _, i := range parsed.AST.Children {
-
 		cmd := Command{
 			Path:        path.Path,
 			Instruction: i.Value,
@@ -244,8 +220,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.ArgCommand:
@@ -267,8 +243,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest[len(ic.SourcesAndDest)-1],
-				Sources: ic.SourcesAndDest[0 : len(ic.SourcesAndDest)-1],
+				Dest:    ic.SourcesAndDest.DestPath,
+				Sources: ic.SourcesAndDest.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.EntrypointCommand:
@@ -288,7 +264,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 				parts := strings.Split(p, "/")
 				iPort, err := strconv.Atoi(parts[0])
 				if err != nil {
-					// Log and ignore errors
 					plugin.Logger(ctx).Error("listDockerfileInstruction", "expose_data_parsing_error", err, "cmd", cmd)
 					continue
 				}
@@ -311,9 +286,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			}
 			cmd.Data = data
 		case *instructions.RunCommand:
-			// NOTE: This is an approximate split of the commands only based on &&.
-			// It does not do full parsing of the command so may be inaccurate if the
-			// command includes && for other reasons (rare).
 			re := regexp.MustCompile(`\s*&&\s*`)
 			data := runInstructionData{
 				PrependShell: ic.PrependShell,
@@ -337,7 +309,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 		switch cmd.Instruction {
 		case "from":
 			data := fromInstructionData{}
-			// Get the image and qualifier (if any)
 			parts := strings.Split(cmd.Args[0], ":")
 			if len(parts) >= 2 {
 				data.Image = parts[0]
@@ -349,7 +320,6 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 					data.Digest = parts[1]
 				}
 			}
-			// Get the stage name (if any)
 			if len(cmd.Args) >= 3 {
 				if strings.ToLower(cmd.Args[1]) == "as" {
 					data.StageName = cmd.Args[2]
