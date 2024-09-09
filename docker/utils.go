@@ -92,7 +92,7 @@ func getParsedComposeDataUncached(ctx context.Context, d *plugin.QueryData, _ *p
 	// Gather file path matches for the glob
 	var matches []string
 
-	if dockerConfig.DockerComposeFilePaths == nil || len(dockerConfig.DockerComposeFilePaths) == 0 {
+	if len(dockerConfig.DockerComposeFilePaths) == 0 {
 		return nil, nil
 	} else {
 		for _, i := range dockerConfig.DockerComposeFilePaths {
