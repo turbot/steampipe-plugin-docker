@@ -12,15 +12,15 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
-func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
+func connect(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {
 
 	// Load connection from cache, which preserves throttling protection etc
 	cacheKey := "docker"
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+	if cachedData, ok := d.ConnectionCache.Get(ctx, cacheKey); ok {
 		return cachedData.(*client.Client), nil
 	}
 
@@ -29,19 +29,29 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	// process.
 	dockerConfig := GetConfig(d.Connection)
 	if dockerConfig.Host != nil {
-		os.Setenv("DOCKER_HOST", *dockerConfig.Host)
+		if err := os.Setenv("DOCKER_HOST", *dockerConfig.Host); err != nil {
+			return nil, err
+		}
 	}
 	if dockerConfig.APIVersion != nil {
-		os.Setenv("DOCKER_API_VERSION", *dockerConfig.APIVersion)
+		if err := os.Setenv("DOCKER_API_VERSION", *dockerConfig.APIVersion); err != nil {
+			return nil, err
+		}
 	}
 	if dockerConfig.CertPath != nil {
-		os.Setenv("DOCKER_CERT_PATH", *dockerConfig.CertPath)
+		if err := os.Setenv("DOCKER_CERT_PATH", *dockerConfig.CertPath); err != nil {
+			return nil, err
+		}
 	}
 	if dockerConfig.TLSVerify != nil {
 		if *dockerConfig.TLSVerify {
-			os.Setenv("DOCKER_TLS_VERIFY", "1")
+			if err := os.Setenv("DOCKER_TLS_VERIFY", "1"); err != nil {
+				return nil, err
+			}
 		} else {
-			os.Setenv("DOCKER_TLS_VERIFY", "0")
+			if err := os.Setenv("DOCKER_TLS_VERIFY", "0"); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -52,7 +62,7 @@ func connect(_ context.Context, d *plugin.QueryData) (*client.Client, error) {
 	}
 
 	// Save to cache
-	d.ConnectionManager.Cache.Set(cacheKey, conn)
+	_ = d.ConnectionCache.Set(ctx, cacheKey, conn)
 
 	return conn, nil
 }

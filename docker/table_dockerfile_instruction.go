@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 
 	filehelpers "github.com/turbot/go-kit/files"
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 func tableDockerfileInstruction(ctx context.Context) *plugin.Table {
@@ -240,8 +240,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest.DestPath,
-				Sources: ic.SourcesAndDest.SourcePaths,
+				Dest:    ic.DestPath,
+				Sources: ic.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.ArgCommand:
@@ -263,8 +263,8 @@ func listDockerfileInstruction(ctx context.Context, d *plugin.QueryData, h *plug
 			data := copyInstructionData{
 				Chmod:   ic.Chmod,
 				Chown:   ic.Chown,
-				Dest:    ic.SourcesAndDest.DestPath,
-				Sources: ic.SourcesAndDest.SourcePaths,
+				Dest:    ic.DestPath,
+				Sources: ic.SourcePaths,
 			}
 			cmd.Data = data
 		case *instructions.EntrypointCommand:
